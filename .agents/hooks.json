@@ -1,0 +1,46 @@
+{
+  "hooks": [
+    {
+      "name": "post-generation-lint",
+      "description": "Runs a markdown linter after any file is written to catch formatting issues early.",
+      "trigger": "PostToolUse",
+      "matcher": {
+        "toolName": "write_file"
+      },
+      "handler": {
+        "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", ".agents/scripts/lint-markdown.ps1"],
+        "timeout": 15000
+      }
+    },
+    {
+      "name": "session-welcome",
+      "description": "Displays a welcome message when a new Game Dojo session starts.",
+      "trigger": "SessionStart",
+      "handler": {
+        "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", ".agents/scripts/welcome.ps1"],
+        "timeout": 5000
+      }
+    },
+    {
+      "name": "validation-reminder",
+      "description": "Reminds the agent to run validation after document generation is complete.",
+      "trigger": "PostInvocation",
+      "handler": {
+        "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", ".agents/scripts/validation-reminder.ps1"],
+        "timeout": 5000
+      }
+    },
+    {
+      "name": "json-auto-validate",
+      "description": "Automatically validates JSON syntax after any file is written, catching malformed JSON early.",
+      "trigger": "PostToolUse",
+      "matcher": {
+        "toolName": "write_file"
+      },
+      "handler": {
+        "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", ".agents/scripts/validate-json.ps1"],
+        "timeout": 10000
+      }
+    }
+  ]
+}
