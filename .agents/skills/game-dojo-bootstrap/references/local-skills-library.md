@@ -1,7 +1,7 @@
 # Local Skills Library Reference Guide
 
-> **Path:** `C:\Users\Vinod krishna\antigravity_skills`  
-> **Total Available Skills:** 1,320+ pre-built skills  
+> **Path:** `C:\Users\Vinod krishna\antigravity_skills`
+> **Total Available Skills:** 1,320+ pre-built skills
 > **Manifest:** `C:\Users\Vinod krishna\antigravity_skills\.antigravity-install-manifest.json`
 
 ---

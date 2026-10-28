@@ -6,8 +6,8 @@ A mapping of technologies to their Antigravity ecosystem resources — marketpla
 
 ## 📚 Primary Resource: Local Skills Library
 
-> **Local Path:** `C:\Users\Vinod krishna\antigravity_skills`  
-> **Index & Guide:** [references/local-skills-library.md](local-skills-library.md)  
+> **Local Path:** `C:\Users\Vinod krishna\antigravity_skills`
+> **Index & Guide:** [references/local-skills-library.md](local-skills-library.md)
 > **Available Skills:** 1,320+ pre-built skills across DevOps, AI, Frontend, Backend, Databases, Security, and Testing.
 
 Before fetching external plugins or generating skills from scratch, **Game Dojo queries this local directory first** and copies or adapts matching skills directly into `.agents/skills/`.

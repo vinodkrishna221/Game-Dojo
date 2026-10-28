@@ -86,7 +86,11 @@ Run the `project-validator` skill again. Record the new score as `new_score`.
 Compare `new_score` to `baseline_score`:
 
 - **If `new_score` > `baseline_score`** → **KEEP** the change. Log the success. Update `baseline_score = new_score`.
-- **If `new_score` <= `baseline_score`** → **DISCARD** the change. Run `git reset --hard HEAD~1`. Log the failure. Move to the next improvement target.
+- **If `new_score` <= `baseline_score`** → **DISCARD** the change. Run:
+  ```powershell
+  git reset --hard HEAD~1; git clean -fd
+  ```
+  `git clean -fd` ensures any newly generated untracked files or directories from the failed attempt are purged. If a Windows file lock error occurs during reset, wait 500ms and re-attempt. Log the failure. Move to the next improvement target.
 
 ### Step 9 — Log
 

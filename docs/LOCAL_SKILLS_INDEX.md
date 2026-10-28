@@ -1,7 +1,7 @@
 # 📚 Local Skills Library Index & Reference
 
-> **Location:** `C:\Users\Vinod krishna\antigravity_skills`  
-> **Repository Size:** 1,326 specialized skills  
+> **Location:** `C:\Users\Vinod krishna\antigravity_skills`
+> **Repository Size:** 1,326 specialized skills
 > **Integration:** Registered as a primary reference source for Game Dojo
 
 ---

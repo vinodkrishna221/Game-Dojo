@@ -11,13 +11,16 @@ These rules activate when the Game Dojo plugin is enabled and govern all project
 
 ## Workflow Enforcement
 
-Follow the **5-phase workflow** strictly and in order. Do not skip or reorder phases:
+Follow the **8-phase Game Dojo 2.0 workflow** in order:
 
-1. **Discovery** — Conduct the structured interview to gather project requirements. Do not proceed until the user has confirmed their answers.
-2. **Analysis** — Analyze the gathered requirements to determine tech stack, architecture patterns, and project structure. Use sequential-thinking for complex trade-offs.
-3. **Generation** — Produce all project files using the template engine. Follow the dependency order specified below.
-4. **Validation** — Verify all generated files for completeness, consistency, and correctness. Check cross-references, required sections, and structural integrity.
-5. **Presentation** — Present the bootstrapped workspace to the user with a summary of what was created and suggested next steps.
+1. **Discovery / Intake** — Conduct structured interview with smart defaults.
+2. **Analysis & Architecture** — Determine stack, architecture pattern, and file manifest.
+3. **Swarm Generation** — Deploy specialist subagents in parallel on isolated branches.
+4. **Integration** — Configure hooks, MCP tools, and plugin manifests.
+5. **Validation** — Verify syntactic correctness, frontmatter, and link resolution.
+6. **Project Skeleton** — Generate runnable code manifests, configs, setup scripts (`setup.ps1`/`setup.sh`), and starter features.
+7. **Ratchet Loop** — Autonomously improve project files with git hill-climbing until score > 95.
+8. **Memory & Handoff** — Persist session to adaptive memory and present handoff summary.
 
 ## File Generation Order
 

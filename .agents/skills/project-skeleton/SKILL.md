@@ -726,12 +726,12 @@ Write-Host ""
 Write-Host "📋 Checking prerequisites..." -ForegroundColor Yellow
 
 # Check Node.js
-$nodeVersion = node --version 2>$null
-if (-not $nodeVersion) {
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Host "❌ Node.js is not installed. Please install Node.js 18+ from https://nodejs.org" -ForegroundColor Red
     exit 1
 }
-$major = [int]($nodeVersion -replace 'v(\d+)\..*', '$1')
+$nodeVersion = node --version
+$major = [int]($nodeVersion -replace '^v(\d+)\..*', '$1')
 if ($major -lt 18) {
     Write-Host "❌ Node.js $nodeVersion is too old. Please upgrade to Node.js 18+." -ForegroundColor Red
     exit 1
@@ -739,11 +739,11 @@ if ($major -lt 18) {
 Write-Host "  ✅ Node.js $nodeVersion" -ForegroundColor Green
 
 # Check npm
-$npmVersion = npm --version 2>$null
-if (-not $npmVersion) {
+if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
     Write-Host "❌ npm is not available." -ForegroundColor Red
     exit 1
 }
+$npmVersion = npm --version
 Write-Host "  ✅ npm v$npmVersion" -ForegroundColor Green
 
 # 2. Install dependencies
@@ -793,12 +793,82 @@ Write-Host "━━━━━━━━━━━━━━━━━━━━━━�
 ```
 
 #### `scripts/setup.sh` (Unix)
-Generate the equivalent Bash script with:
-- `#!/usr/bin/env bash` shebang
-- `set -euo pipefail` for safety
-- Same prerequisite checks using `command -v`
-- Same installation and setup steps
-- `chmod +x` reminder in the README
+```bash
+#!/usr/bin/env bash
+# Project Setup Script for Unix/macOS/Linux
+# Usage: chmod +x ./scripts/setup.sh && ./scripts/setup.sh
+
+set -euo pipefail
+
+echo "🥋 Setting up project..."
+echo ""
+
+# 1. Check prerequisites
+echo "📋 Checking prerequisites..."
+
+if ! command -v node >/dev/null 2>&1; then
+    echo "❌ Node.js is not installed. Please install Node.js 18+ from https://nodejs.org"
+    exit 1
+fi
+
+NODE_VERSION=$(node --version)
+NODE_MAJOR=$(echo "$NODE_VERSION" | sed -E 's/^v([0-9]+)\..*/\1/')
+if [ "$NODE_MAJOR" -lt 18 ]; then
+    echo "❌ Node.js $NODE_VERSION is too old. Please upgrade to Node.js 18+."
+    exit 1
+fi
+echo "  ✅ Node.js $NODE_VERSION"
+
+if ! command -v npm >/dev/null 2>&1; then
+    echo "❌ npm is not available."
+    exit 1
+fi
+NPM_VERSION=$(npm --version)
+echo "  ✅ npm v$NPM_VERSION"
+
+# 2. Install dependencies
+echo ""
+echo "📦 Installing dependencies..."
+npm install
+echo "  ✅ Dependencies installed"
+
+# 3. Set up environment
+echo ""
+echo "🔐 Setting up environment..."
+if [ ! -f ".env" ]; then
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        echo "  ✅ Created .env from .env.example"
+        echo "  ⚠️  Please update .env with your actual values"
+    fi
+else
+    echo "  ℹ️  .env already exists, skipping"
+fi
+
+# 4. Database setup (if applicable)
+echo ""
+echo "🗃️ Setting up database..."
+if npm run 2>/dev/null | grep -q "db:migrate"; then
+    if npm run db:migrate 2>/dev/null; then
+        echo "  ✅ Database migrations applied"
+        if npm run 2>/dev/null | grep -q "db:seed"; then
+            npm run db:seed 2>/dev/null && echo "  ✅ Database seeded with sample data" || true
+        fi
+    else
+        echo "  ⚠️  Database setup skipped (check DATABASE_URL in .env)"
+    fi
+fi
+
+# 5. Done
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🎉 Setup complete!"
+echo ""
+echo "  Start developing:  npm run dev"
+echo "  Run tests:         npm test"
+echo "  Check code:        npm run lint"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+```
 
 ---
 

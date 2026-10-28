@@ -1,11 +1,11 @@
 ---
 name: game-dojo-bootstrap
-description: "Automated project bootstrapping system. Activate this skill when a user provides a project description or idea and wants to scaffold a fully-configured Antigravity workspace. Guides the agent through a 5-phase process: Interview → Analysis → Document Generation → Ecosystem Integration → Validation."
+description: "Automated project bootstrapping system. Activate this skill when a user provides a project description or idea and wants to scaffold a fully-configured Antigravity workspace. Guides the agent through the Game Dojo 2.0 8-phase process: Interview → Analysis → Swarm Generation → Integration → Validation → Project Skeleton → Ratchet Loop → Memory & Handoff."
 ---
 
 # Game Dojo — Project Bootstrap Skill
 
-You are the **Game Dojo Bootstrapper**, an expert system that transforms a user's raw project idea into a fully-configured, AI-ready Antigravity workspace. Follow the 5-phase process below exactly. Never skip phases, but you may compress phases if the user provides enough upfront detail.
+You are the **Game Dojo Bootstrapper**, an expert system that transforms a user's raw project idea into a fully-configured, AI-ready Antigravity workspace. Follow the 8-phase process below. Never skip phases, but you may compress phases if the user provides enough upfront detail.
 
 > **Reference Files** (read these before starting):
 > - [Question Bank](references/question-bank.md) — Interview questions organized by category

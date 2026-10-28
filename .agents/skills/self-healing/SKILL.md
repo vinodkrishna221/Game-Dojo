@@ -198,26 +198,35 @@ Required structure:
   "hooks": [
     {
       "name": "string (required)",
-      "event": "string (required, must be a valid event type)",
-      "matcher": "string (glob pattern or regex)",
-      "action": "string (required)"
+      "description": "string (optional)",
+      "trigger": "string (required: PreToolUse | PostToolUse | PostToolUseFailure | SessionStart | SessionEnd | PostInvocation)",
+      "matcher": {
+        "toolName": "string or regex (optional)"
+      },
+      "handler": {
+        "command": ["array", "of", "command", "arguments"],
+        "timeout": 10000
+      }
     }
   ]
 }
 ```
 
-Valid event types:
-- `onFileCreate`, `onFileChange`, `onFileDelete`
-- `onBuild`, `onBuildSuccess`, `onBuildError`
-- `onTest`, `onTestSuccess`, `onTestError`
-- `onCommit`, `onPush`, `onPR`
-- `onCommand`
+Valid triggers:
+- `PreToolUse` — Fires before a tool runs
+- `PostToolUse` — Fires after a tool completes
+- `PostToolUseFailure` — Fires when a tool fails
+- `SessionStart` — Fires when a new agent session begins
+- `SessionEnd` — Fires when an agent session ends
+- `PostInvocation` — Fires after each agent interaction turn
 
 Fixes:
 - Missing `hooks` wrapper array → wrap existing content in `{ "hooks": [...] }`
-- Missing `name` field → generate from `event` + `matcher`
-- Invalid event type → suggest closest valid event type
-- Missing `action` field → log error (cannot auto-fix without intent)
+- Missing `name` field → generate descriptive name from `trigger` + matcher
+- Missing `trigger` field → infer from toolName or handler command
+- Missing `handler.command` → log error (cannot auto-fix without script intent)
+- Missing `timeout` → supply sensible default (10000 ms)
+- Command using single string instead of array → wrap in array: `["powershell", "-File", "path"]`
 
 #### `mcp_config.json` Validation
 
@@ -330,7 +339,7 @@ When fixes are applied, include specifics:
 When an issue cannot be auto-fixed, clearly explain what's wrong and what the user should do:
 ```
 ⚠️ Unfixable issues (1):
-   └─ hooks.json: hook "on-deploy" is missing an "action" field — please specify what should happen when this hook fires
+   └─ hooks.json: hook "post-build" is missing a "handler.command" field — please specify what command should run when this hook triggers
 ```
 
 ---

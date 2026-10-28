@@ -289,6 +289,16 @@ If two agents produce conflicting outputs (e.g., Doc Generator references a diff
 2. If both deviate from the spec, the Architect corrects both to match the spec
 3. All conflict resolutions are logged for the user's review
 
+### Shared Configuration Merge Strategy
+
+When parallel specialists create or modify shared configuration files, the Architect resolves conflicts via deterministic merge rules:
+
+- **`package.json`**: Deep-merge JSON keys. In `scripts`, retain all non-conflicting scripts; for duplicates, prefer the Project Skeleton definition. In `dependencies` and `devDependencies`, take the union of packages. If version ranges differ, select the newer stable semantic version compatible with the Project Specification.
+- **`hooks.json`**: Merge the `hooks` array, deduplicating entries by `name`. If two definitions share a name, the Integration Agent's definition takes precedence.
+- **`mcp_config.json`**: Merge objects under `mcpServers`. If server configurations collide, the Integration Agent's configuration takes precedence.
+- **`.env.example`**: Concatenate and union environment variable definitions, preserving category comments and deduplicating matching variable keys.
+- **Git Branch Merge Flow**: The Architect merges each specialist branch (`swarm/docs`, `swarm/skills`, `swarm/integration`) into `swarm/merged` sequentially with `git merge --no-commit`. If git reports conflict markers, the Architect applies the rules above, validates resulting JSON/Markdown files, and completes the merge commit.
+
 ---
 
 ## Communication Protocol

@@ -5,7 +5,7 @@
       "description": "Runs a markdown linter after any file is written to catch formatting issues early.",
       "trigger": "PostToolUse",
       "matcher": {
-        "toolName": "write_file"
+        "toolName": "write_to_file|write_file|replace_file_content"
       },
       "handler": {
         "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", ".agents/scripts/lint-markdown.ps1"],
@@ -35,7 +35,7 @@
       "description": "Automatically validates JSON syntax after any file is written, catching malformed JSON early.",
       "trigger": "PostToolUse",
       "matcher": {
-        "toolName": "write_file"
+        "toolName": "write_to_file|write_file|replace_file_content"
       },
       "handler": {
         "command": ["powershell", "-ExecutionPolicy", "Bypass", "-File", ".agents/scripts/validate-json.ps1"],

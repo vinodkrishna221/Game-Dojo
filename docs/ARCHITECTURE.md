@@ -130,19 +130,19 @@ Verifies the generated workspace for completeness and consistency.
 ```mermaid
 flowchart TD
     Input["User Input\n'Build me a recipe sharing app'"]
-    
+
     Input --> Interview["Interview Engine\nStructured Q&A"]
     Interview --> Requirements["Requirements Object\n{type, audience, features, tech}"]
-    
+
     Requirements --> Analysis["Analysis Engine\nTrade-off evaluation"]
     Analysis --> Decisions["Architecture Decisions\n{stack, pattern, structure}"]
-    
+
     Decisions --> Templates["Template Engine\nTemplate rendering"]
     Templates --> Files["File Content\n{path, content, metadata}"]
-    
+
     Files --> Writer["File Writer\nOrdered file creation"]
     Writer --> Workspace["Generated Workspace\ndocs/, .agents/, src/"]
-    
+
     Workspace --> Validator["Validation Engine\nConsistency checks"]
     Validator --> Report["Validation Report\n{passed, warnings, errors}"]
 
@@ -184,17 +184,17 @@ flowchart TD
 ```mermaid
 flowchart TD
     Bootstrap["game-dojo-bootstrap\n(Primary Skill)"]
-    
+
     Bootstrap --> Interview["Interview\nModule"]
     Bootstrap --> Analysis["Analysis\nModule"]
     Bootstrap --> Generation["Generation\nModule"]
     Bootstrap --> Validation["Validation\nModule"]
-    
+
     Analysis --> SeqThink["sequential-thinking\n(MCP Server)"]
     Generation --> Templates["Reference Templates\n(references/)"]
     Generation --> Hooks["Lifecycle Hooks\n(hooks.json)"]
     Validation --> Hooks
-    
+
     Hooks --> LintScript["lint-markdown.ps1"]
     Hooks --> WelcomeScript["welcome.ps1"]
     Hooks --> ReminderScript["validation-reminder.ps1"]
@@ -336,17 +336,17 @@ flowchart LR
 ```mermaid
 flowchart TD
     Arch["🏛️ ARCHITECT\n(Orchestrator)"]
-    
+
     Arch --> R["🔍 Research"]
     Arch --> DG["📝 Doc Generator"]
     Arch --> SB["🛠️ Skill Builder"]
     Arch --> IA["🔌 Integration"]
-    
+
     R --> M["📦 Merge Point"]
     DG --> M
     SB --> M
     IA --> M
-    
+
     M --> V["✅ Validator"]
     V --> T["🧪 Comprehension Test"]
     T --> RL["🔄 Ratchet Loop"]
