@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Hotel Station Interaction Interface Contract",
+  "version": "1.0.0",
+  "status": "FROZEN (v1.0-CONTRACT)",
+  "freezeDate": "2026-10-28",
+  "reviewers": ["@lead"],
+  "description": "Defines station interaction rules, state machine transitions, queue capacities, and base C# interface contracts.",
+  "interfaceContract": {
+    "csharpInterface": "IHotelStation",
+    "methods": [
+      {
+        "name": "CanInteract",
+        "parameters": ["PlayerController player"],
+        "returnType": "bool",
+        "description": "Returns true if the player meets proximity and inventory criteria."
+      },
+      {
+        "name": "Interact",
+        "parameters": ["PlayerController player"],
+        "returnType": "void",
+        "description": "Executes the station interaction logic (loads ingredients, makes bed, spots lifter)."
+      },
+      {
+        "name": "UpgradeStation",
+        "parameters": [],
+        "returnType": "bool",
+        "description": "Increases station tier and unlocks additional queue slots or speed boosts."
+      }
+    ]
+  },
+  "stations": [
+    {
+      "stationId": "reception_desk",
+      "displayName": "Hotel Reception Counter",
+      "interactionType": "hold",
+      "holdDurationSeconds": 1.5,
+      "maxLevel": 3,
+      "baseQueueCapacity": 4,
+      "requiredItem": null,
+      "outputItem": "RoomKeycard"
+    },
+    {
+      "stationId": "protein_bar",
+      "displayName": "Max Gains Protein Bar",
+      "interactionType": "tap_to_start",
+      "brewDurationSeconds": 3.0,
+      "maxLevel": 3,
+      "baseQueueCapacity": 2,
+      "requiredItem": null,
+      "outputItem": "ProteinShake"
+    },
+    {
+      "stationId": "squat_rack",
+      "displayName": "Heavy Duty Squat Rack & Bench Arena",
+      "interactionType": "timing_spot",
+      "spotWindowSeconds": 5.0,
+      "maxLevel": 3,
+      "baseQueueCapacity": 2,
+      "requiredItem": null,
+      "outputItem": "MuscleTips"
+    },
+    {
+      "stationId": "bed_suite",
+      "displayName": "Barbell Reinforced Bed Suite",
+      "interactionType": "clean_and_prep",
+      "prepDurationSeconds": 2.0,
+      "maxLevel": 3,
+      "baseQueueCapacity": 1,
+      "requiredItem": "CleanTowel",
+      "outputItem": null
+    },
+    {
+      "stationId": "sauna_zone",
+      "displayName": "Cedar Recovery Sauna",
+      "interactionType": "replenish",
+      "replenishDurationSeconds": 1.5,
+      "maxLevel": 3,
+      "baseQueueCapacity": 3,
+      "requiredItem": "ColdWaterBucket",
+      "outputItem": null
+    }
+  ]
+}

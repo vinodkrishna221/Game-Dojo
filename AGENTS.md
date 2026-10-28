@@ -1,176 +1,36 @@
-# Game Dojo — Agent Behavioral Rules
+# BroTel: Gym Bro Hotel Tycoon — Agent Behavioral Rules
 
-This document defines how AI agents should behave when operating inside the Game Dojo workspace. These rules govern interaction style, generation workflow, and quality standards.
-
----
-
-## Activation
-
-When a user provides a project description (or expresses intent to bootstrap a new project), **immediately activate the `game-dojo-bootstrap` skill** by reading `skills/game-dojo-bootstrap/SKILL.md`. Do not attempt to generate project files from memory alone — the skill contains the canonical workflow, templates, and validation logic.
+This document governs how AI agents behave when assisting human developers in the BroTel workspace.
 
 ---
 
-## Interview Behavior
+## 1. Team Boundary Protocol
 
-### Questioning Style
-- Ask questions in a **friendly, concise manner**.
-- Group related questions together — never ask one question at a time.
-- **Batch questions into 3–4 at a time**, maximum. If more information is needed, follow up in subsequent rounds.
-- Provide **smart defaults** for every question so the user can simply confirm or override.
+When an AI agent is activated in this workspace:
 
-### Example Format
-```
-Great! A few quick questions to nail down the details:
-
-1. **Primary language?** (default: TypeScript)
-2. **Target platform?** Web, mobile, or desktop? (default: Web)
-3. **Need a database?** If so, SQL or NoSQL? (default: None for now)
-
-Feel free to just hit the defaults if they work for you!
-```
-
-### When the User Is Unsure
-- If the user seems uncertain about technical choices, **suggest modern best practices** with brief, jargon-free explanations.
-- Frame suggestions as recommendations, not mandates: *"I'd recommend X because it gives you Y, but Z is also a solid choice if you prefer..."*
-- Never assume expertise level — adapt based on how the user communicates.
-
----
-
-## Generation Rules
-
-### Local Skills First
-Before writing a new skill from scratch, always inspect the local skill library at `C:\Users\Vinod krishna\antigravity_skills`. If a high-quality skill exists for the project's domain (e.g. `zod-validation-expert`, `prisma-schema`, `docker-compose`, `playwright-e2e`), copy or adapt it directly into the project's `.agents/skills/` directory.
-
-### Dependency Order
-Always create files in this sequence to ensure each file can reference its dependencies:
-
-1. **`GEMINI.md`** — Project rules and conventions (foundation for everything else)
-2. **`AGENTS.md`** — Agent behavioral rules
-3. **`DESIGN_SYSTEM.md`** — Visual identity and formatting conventions
-4. **Skills** — `SKILL.md` files in `skills/` directories
-5. **Plugin configs** — `plugin.json` files
-6. **Hook configs** — `hooks.json` files
-7. **MCP configs** — `mcp_config.json` files
-8. **Documentation** — `README.md`, additional docs in `/docs`
-
-### File Explanation
-After generating each file (or batch of files), **explain what the file does and why it's needed**. Keep explanations to 1–2 sentences per file. Example:
-
-> ✅ Created `skills/api-scaffold/SKILL.md` — This skill teaches the agent how to generate REST API boilerplate for your Express.js backend.
-
-### Post-Generation Summary
-After all files are generated, present a **summary checklist** showing:
-- Every file created, grouped by category
-- Status indicator (✅ for created, ⚠️ for needs attention)
-- Brief purpose of each file
-
-Example:
-```
-## 📋 Generation Summary
-
-### Core Configuration
-- ✅ GEMINI.md — Project rules and conventions
-- ✅ AGENTS.md — Agent behavioral rules
-- ✅ DESIGN_SYSTEM.md — Design system and visual identity
-
-### Skills
-- ✅ skills/api-scaffold/SKILL.md — API boilerplate generation
-- ✅ skills/db-setup/SKILL.md — Database initialization
-
-### Plugins & Integrations
-- ✅ plugin.json — Plugin manifest
-- ✅ hooks.json — Lifecycle hooks
-- ✅ mcp_config.json — MCP server configuration
-```
+1. **Identity & Context Discovery**:
+   - Inspect active branch: `git branch --show-current` or `git rev-parse --abbrev-ref HEAD`.
+   - Extract `<task-id>` from branch name pattern (`feature/<task-id>-*`).
+   - Locate and read the corresponding task manifest at `.ai-team/tasks/<task-id>.json`.
+2. **Strict Scope Bounding (`touchesFiles` / `allowedPaths`)**:
+   - Confine all file creations, edits, and deletions strictly to the paths enumerated in the task's `touchesFiles` and `allowedPaths` arrays.
+   - Refuse to modify or refactor any file outside the assigned task boundaries.
+3. **Cross-Member File Protection**:
+   - Inspect other task manifests in `.ai-team/tasks/*.json` having status `in_progress` or `todo`.
+   - Never modify files owned by another teammate's active task.
+4. **Contract-First Verification**:
+   - Before modifying any API, interface, or game state serialization, inspect shared contracts in `docs/contracts/`.
+   - Agents must NOT introduce breaking changes to frozen contracts (`Status: FROZEN`).
+5. **PR Submission**:
+   - Prior to PR submission, run deep verification (`powershell ./scripts/verify-project.ps1`).
+   - Update task status in `.ai-team/tasks/<task-id>.json` from `in_progress` to `in_review`.
+   - Format git commits with `feat(<task-id>): <summary>` or `fix(<task-id>): <summary>`.
+   - Never push directly to `main`. Notify `@lead` for PR review and merge.
 
 ---
 
-## Autonomy Rules
+## 2. Quality Standards
 
-### Ratchet Loop Behavior
-- After completing Phase 5 (Validation), automatically enter the ratchet loop unless the user explicitly stops you.
-- Run at least 3 improvement iterations before presenting results.
-- Always commit improvements to git with descriptive messages prefixed with `ratchet:`.
-- If 5 consecutive attempts fail to improve the score, stop the loop and report the plateau.
-
-### Agent Swarm Behavior
-- For projects with 3+ services or technologies, use the agent-swarm skill to parallelize generation.
-- The Architect Agent (main conversation) always has final merge authority.
-- Specialist agents must not modify files outside their domain.
-- After merging, always re-run validation to catch integration issues.
-
-### Overnight Mode Behavior
-- When activated via `/goal` or phrases like "build this overnight":
-  - Use ALL smart defaults — never block on a question
-  - Run the full 14-step overnight-build pipeline
-  - Generate actual runnable code, not just docs
-  - Run tests and fix failures autonomously
-  - Create a comprehensive morning report artifact
-  - Never deploy to production without human approval
-
-### Self-Healing Behavior
-- After writing any JSON file, immediately validate it by parsing
-- After generating docs, scan all internal links for broken references
-- Fix issues silently when the fix is obvious; report when judgment is needed
-- All auto-fixes must be logged in the ratchet-log
-
-### Adaptive Memory
-- Before starting any bootstrap, check `C:\Users\Vinod krishna\antigravity_skills\.game-dojo-memory\preference-profile.json` for user preferences
-- After every bootstrap, record the session in the decision log
-- When the user manually edits a generated file, note the change for template evolution
-
-### Team Boundary Protocol
-When running in a multi-developer or team-configured workspace (where `.ai-team/` exists):
-- **Identity & Context Discovery**:
-  - Always inspect the active git branch (`git branch --show-current` or `git rev-parse --abbrev-ref HEAD`) and git user identity (`git config user.name`, `git config user.email`).
-  - Extract the task identifier from the branch name pattern (e.g., `feature/<task-id>-*`, `feat/<task-id>-*`, `fix/<task-id>-*`, or `task/<task-id>-*`).
-  - Locate and read the corresponding task manifest at `.ai-team/tasks/<task-id>.json`.
-- **Strict Scope Bounding (`touchesFiles` / `allowedPaths`)**:
-  - Confine code edits, file creations, and deletions strictly to the paths enumerated in the task's `touchesFiles` (or `allowedPaths`) array.
-  - Do not modify, refactor, or format any files outside the assigned task boundaries without explicit human instruction.
-- **Cross-Member File Protection**:
-  - Inspect other task manifests in `.ai-team/tasks/*.json` having status `in_progress` or `in_review`.
-  - Forbid modifying files owned by or currently assigned to other team members' active tasks. If an uncommitted or cross-stream dependency is detected, halt modification and request explicit coordination.
-- **Contract-First Verification**:
-  - Before modifying any API routes, endpoint handlers, database schemas, or inter-service interfaces, inspect shared contracts located in `docs/contracts/` or `contracts/` (e.g., OpenAPI specs, Zod schemas, Prisma schemas).
-  - Agents must NOT introduce breaking changes or mutate shared contract boundaries unilaterally. Any contract modification requires an explicit contract update workflow and team review.
-- **Task Lifecycle Adherence**:
-  - When beginning work, verify the task transitions from `todo` to `in_progress`.
-  - Prior to PR submission, run deep verification and transition the task status to `in_review`.
-
----
-
-## Quality Standards
-
-### JSON Validation
-- **Always validate** that generated JSON files are syntactically correct before presenting them as complete.
-- If a JSON file would be invalid (e.g., trailing commas, unquoted keys), fix it before writing.
-
-### Completeness
-- Never generate a file with placeholder content like `// TODO: implement`, `"..."`, or `<insert here>`.
-- Every file must be **immediately usable** without further editing.
-- If you lack information to complete a file, ask the user rather than inserting placeholders.
-
-### Consistency
-- Use consistent naming across all generated files.
-- Ensure cross-references between files (skill names, paths, config keys) are accurate.
-- Follow the conventions defined in `GEMINI.md` exactly.
-
----
-
-## Communication Style
-
-- Be **enthusiastic but professional** — this is about building something exciting.
-- Use the dojo metaphor naturally: "Let's get your project into fighting shape" or "Here's your training plan."
-- Keep responses concise — favor bullet points and tables over long paragraphs.
-- Use emoji sparingly and consistently (see `DESIGN_SYSTEM.md` for the emoji guide).
-- When presenting choices, use a table or numbered list, never a wall of text.
-
----
-
-## Error Handling
-
-- If a template is missing from `templates/`, generate the file from first principles but **warn the user** that a template was expected.
-- If the user's project description is too vague to proceed, ask for clarification rather than guessing.
-- If file generation fails for any reason, explain what went wrong and suggest a fix.
-- Never silently skip a file — always report what was and wasn't created.
+- **Zero Placeholders**: Never generate files with `// TODO: implement`, `"..."`, or stubbed methods. Every file must be complete, compilable, and functional.
+- **Syntactic Correctness**: Validate all JSON, C#, JavaScript, and Markdown files prior to completion.
+- **CrazyGames Compliance**: Respect 3-minute midgame ad intervals, verify AdBlock safety, and ensure `AudioListener.pause` and `Time.timeScale` are handled properly.

@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "TASK-003",
+  "title": "Blender 5.0 Low-Poly 3D Asset Generation Pipeline & Prefab Manifest",
+  "slug": "blender-assets",
+  "branch": "feature/TASK-003-blender-assets",
+  "type": "feature",
+  "priority": "critical",
+  "status": "todo",
+  "assignee": {
+    "id": "art-dev",
+    "name": "Teammate 3 - 3D Art & Blender Specialist",
+    "githubUsername": "art-dev",
+    "type": "human"
+  },
+  "reviewers": ["lead"],
+  "dependencies": [],
+  "contractDependencies": [
+    "docs/contracts/hotel-station-interface.json"
+  ],
+  "touchesFiles": [
+    "tools/blender/generate_brotel_models.py",
+    "tools/blender/README.md",
+    "Assets/Prefabs/PrefabsManifest.json",
+    "Assets/Materials/MaterialPalette.json",
+    "Assets/Models/gym_bro_character.obj",
+    "Assets/Models/dumbbell.obj",
+    "Assets/Models/barbell_squat_rack.obj",
+    "Assets/Models/protein_shaker.obj",
+    "Assets/Models/reception_desk.obj",
+    "Assets/Models/hotel_bed_suite.obj",
+    "Assets/Models/sauna_bench.obj"
+  ],
+  "allowedPaths": [
+    "tools/blender/**",
+    "Assets/Models/**",
+    "Assets/Materials/**",
+    "Assets/Prefabs/**"
+  ],
+  "acceptanceCriteria": [
+    "tools/blender/generate_brotel_models.py procedurally creates 7 distinct stylized low-poly models via Blender bpy.",
+    "Executing generation script outputs valid .obj and .mtl files into Assets/Models/.",
+    "PrefabsManifest.json documents bounding boxes, collider types, and interaction trigger radiuses.",
+    "MaterialPalette.json defines stylized neon and gym PBR color schemes.",
+    "tools/blender/README.md documents pipeline execution and Blender MCP server usage."
+  ],
+  "verificationCommands": [
+    "powershell -ExecutionPolicy Bypass -File ./scripts/generate-3d-assets.ps1",
+    "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  ],
+  "schedule": {
+    "estimatedHours": 8,
+    "wave": 2
+  }
+}

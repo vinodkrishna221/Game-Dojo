@@ -1,0 +1,133 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "BroTel: Gym Bro Hotel Tycoon",
+  "version": "1.0.0",
+  "lastUpdated": "2026-10-28",
+  "status": "in_progress",
+  "targetReleaseDate": "2026-11-30",
+  "architectureSummary": "Unity WebGL 3D top-down hotel tycoon with CrazyGames SDK v3 (ads, cloud save, auth) and automated Blender 5.0 low-poly asset pipeline.",
+  "contractFreezeGates": [
+    {
+      "contract": "docs/contracts/crazygames-bridge-spec.json",
+      "status": "frozen",
+      "frozenAt": "2026-10-28",
+      "reviewers": ["lead"]
+    },
+    {
+      "contract": "docs/contracts/game-state-schema.json",
+      "status": "frozen",
+      "frozenAt": "2026-10-28",
+      "reviewers": ["lead"]
+    },
+    {
+      "contract": "docs/contracts/hotel-station-interface.json",
+      "status": "frozen",
+      "frozenAt": "2026-10-28",
+      "reviewers": ["lead"]
+    }
+  ],
+  "executionWaves": [
+    {
+      "wave": 1,
+      "name": "Wave 1: Foundation & Contracts Freeze",
+      "milestoneIds": ["M1-FOUNDATION"],
+      "status": "completed"
+    },
+    {
+      "wave": 2,
+      "name": "Wave 2: Parallel Stream Baseline",
+      "milestoneIds": ["M2-CORE-STREAMS"],
+      "status": "in_progress"
+    },
+    {
+      "wave": 3,
+      "name": "Wave 3: Stations, Chaos & Cloud Save",
+      "milestoneIds": ["M3-STATIONS-CHAOS"],
+      "status": "todo"
+    },
+    {
+      "wave": 4,
+      "name": "Wave 4: WebGL Build & CrazyGames Submission",
+      "milestoneIds": ["M4-RELEASE-GATE"],
+      "status": "todo"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M1-FOUNDATION",
+      "title": "Foundation, PRDs & Contract Freeze",
+      "description": "PRD, requirements, GDD, monetization guide, frozen contracts, and team orchestration scaffolding.",
+      "phaseId": "phase-1",
+      "status": "completed",
+      "targetDate": "2026-10-28",
+      "progressPercentage": 100,
+      "deliverables": [
+        "docs/PRD.md and specs committed",
+        "Frozen contracts in docs/contracts/ locked",
+        ".ai-team/team.json and plan.json configured",
+        "Setup scripts in scripts/ generated"
+      ]
+    },
+    {
+      "id": "M2-CORE-STREAMS",
+      "title": "Core Gameplay, SDK Bridge & 3D Assets",
+      "description": "C# GameManager & Player Controller, CrazyGames WebGL jslib bridge, and Blender 3D procedural models.",
+      "phaseId": "phase-2",
+      "status": "in_progress",
+      "targetDate": "2026-11-08",
+      "progressPercentage": 0,
+      "taskIds": [
+        "TASK-001",
+        "TASK-002",
+        "TASK-003"
+      ],
+      "deliverables": [
+        "TASK-001: GameManager.cs, EconomyManager.cs, PlayerController.cs, GuestController.cs",
+        "TASK-002: CrazyGamesSDK.jslib, CrazyGamesSDK.cs, AdPlacementManager.cs, WebGL template",
+        "TASK-003: generate_brotel_models.py, 7 .obj models in Assets/Models/, PrefabsManifest.json"
+      ]
+    },
+    {
+      "id": "M3-STATIONS-CHAOS",
+      "title": "5 Core Stations, Chaos Generator & Cloud Save",
+      "description": "Interactive stations, chaos event controller, automated bro staff, and CrazyGames cloud save integration.",
+      "phaseId": "phase-3",
+      "status": "todo",
+      "targetDate": "2026-11-18",
+      "progressPercentage": 0,
+      "taskIds": [
+        "TASK-004",
+        "TASK-005",
+        "TASK-006"
+      ],
+      "deliverables": [
+        "TASK-004: ReceptionDesk, ProteinBar, SquatRack, BedSuite, SaunaZone stations",
+        "TASK-005: ChaosEventController.cs and StaffManager.cs (Bouncer, Barista, Sweeper)",
+        "TASK-006: CloudSaveManager.cs, User account sync, UI banner integration"
+      ]
+    },
+    {
+      "id": "M4-RELEASE-GATE",
+      "title": "WebGL Build, Testing & CrazyGames Submission",
+      "description": "Unity CLI WebGL compilation, AdBlock verification, size audit (<25MB), and release packaging.",
+      "phaseId": "phase-4",
+      "status": "todo",
+      "targetDate": "2026-11-30",
+      "progressPercentage": 0,
+      "taskIds": [],
+      "deliverables": [
+        "Clean WebGL build passing quality checks",
+        "CrazyGames testing dashboard verification",
+        "Submission package ready for CrazyGames portal"
+      ]
+    }
+  ],
+  "criticalPath": [
+    "TASK-001",
+    "TASK-002",
+    "TASK-003",
+    "TASK-004",
+    "TASK-005",
+    "TASK-006"
+  ]
+}

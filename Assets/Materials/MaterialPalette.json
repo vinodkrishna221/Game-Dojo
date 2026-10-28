@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "BroTel: Gym Bro Hotel Tycoon",
+  "version": "1.0.0",
+  "materials": [
+    {
+      "name": "BroSkin",
+      "color": [0.9, 0.68, 0.55, 1.0],
+      "metallic": 0.0,
+      "roughness": 0.6,
+      "shader": "Standard"
+    },
+    {
+      "name": "TankTopRed",
+      "color": [0.95, 0.15, 0.2, 1.0],
+      "metallic": 0.0,
+      "roughness": 0.5,
+      "shader": "Standard"
+    },
+    {
+      "name": "NeonShakerCyan",
+      "color": [0.0, 0.94, 1.0, 1.0],
+      "metallic": 0.1,
+      "roughness": 0.2,
+      "emission": [0.0, 0.4, 0.5],
+      "shader": "Standard"
+    },
+    {
+      "name": "EnergyOrangeCap",
+      "color": [1.0, 0.42, 0.0, 1.0],
+      "metallic": 0.0,
+      "roughness": 0.4,
+      "shader": "Standard"
+    },
+    {
+      "name": "DarkIron",
+      "color": [0.1, 0.1, 0.12, 1.0],
+      "metallic": 0.8,
+      "roughness": 0.3,
+      "shader": "Standard"
+    },
+    {
+      "name": "HeavySteel",
+      "color": [0.15, 0.16, 0.18, 1.0],
+      "metallic": 0.7,
+      "roughness": 0.4,
+      "shader": "Standard"
+    },
+    {
+      "name": "DarkCedar",
+      "color": [0.35, 0.22, 0.14, 1.0],
+      "metallic": 0.0,
+      "roughness": 0.6,
+      "shader": "Standard"
+    },
+    {
+      "name": "GoldBell",
+      "color": [1.0, 0.84, 0.0, 1.0],
+      "metallic": 0.9,
+      "roughness": 0.2,
+      "shader": "Standard"
+    }
+  ]
+}

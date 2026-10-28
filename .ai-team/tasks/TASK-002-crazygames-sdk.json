@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "TASK-002",
+  "title": "CrazyGames SDK v3 WebGL Bridge & Ad Placement Manager",
+  "slug": "crazygames-sdk",
+  "branch": "feature/TASK-002-crazygames-sdk",
+  "type": "feature",
+  "priority": "critical",
+  "status": "todo",
+  "assignee": {
+    "id": "monetization-dev",
+    "name": "Teammate 2 - Monetization & WebGL Engineer",
+    "githubUsername": "monetization-dev",
+    "type": "human"
+  },
+  "reviewers": ["lead"],
+  "dependencies": [],
+  "contractDependencies": [
+    "docs/contracts/crazygames-bridge-spec.json"
+  ],
+  "touchesFiles": [
+    "Assets/Plugins/WebGL/CrazyGamesSDK.jslib",
+    "Assets/Scripts/CrazyGames/CrazyGamesSDK.cs",
+    "Assets/Scripts/Monetization/AdPlacementManager.cs",
+    "Assets/WebGLTemplates/CrazyGames/index.html",
+    "Assets/WebGLTemplates/CrazyGames/style.css"
+  ],
+  "allowedPaths": [
+    "Assets/Plugins/WebGL/**",
+    "Assets/Scripts/CrazyGames/**",
+    "Assets/Scripts/Monetization/**",
+    "Assets/WebGLTemplates/**"
+  ],
+  "acceptanceCriteria": [
+    "CrazyGamesSDK.jslib exports Init, RequestMidgameAd, RequestRewardedAd, GameplayStart, GameplayStop, HappyTime, HasAdblock.",
+    "CrazyGamesSDK.cs provides C# singleton wrapper with #if UNITY_WEBGL && !UNITY_EDITOR blocks and desktop/editor fallbacks.",
+    "Mutes AudioListener and freezes timeScale during ad playback; restores them upon completion or error.",
+    "AdPlacementManager implements 3-minute midgame cooldown and 3 rewarded ad offers (2x Protein Rush, Instant Clean, Summon VIP).",
+    "Custom WebGL template includes crazygames-sdk-v3.js, responsive 100% viewport canvas, and gym bro loading screen.",
+    "Strictly adheres to docs/contracts/crazygames-bridge-spec.json."
+  ],
+  "verificationCommands": [
+    "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  ],
+  "schedule": {
+    "estimatedHours": 10,
+    "wave": 2
+  }
+}

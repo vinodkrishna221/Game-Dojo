@@ -1,158 +1,65 @@
-# Game Dojo — Project Rules
+# BroTel: Gym Bro Hotel Tycoon — Project Rules
 
-> **Game Dojo** is an AI-powered project bootstrapping system for **Antigravity IDE**.
-> It transforms a plain-language project description into a fully configured, ready-to-develop workspace — complete with skills, plugins, hooks, MCP integrations, design systems, and documentation.
-
----
-
-## Core Workflow
-
-Game Dojo follows a five-phase pipeline when bootstrapping a new project:
-
-1. **Accept** — Receive the user's project description (natural language).
-2. **Interview** — Ask targeted clarifying questions to fill knowledge gaps (batched, with smart defaults).
-3. **Analyze** — Determine tech stack, architecture, integrations, and file structure.
-4. **Generate** — Produce all project files: `GEMINI.md`, skills, plugins, hooks, MCP configs, docs, and templates.
-5. **Validate** — Verify every generated file is syntactically correct, complete, and immediately usable.
-
-### Team Mode Workflow Extension
-When Team Mode is enabled (multi-developer human+AI squads):
-- **Phase 3 (Analyze)**: Synthesizes a team decomposition plan, establishing independent work streams, module boundaries, and contract specifications.
-- **Phase 4 (Generate)**: Generates `.ai-team/team.json` (member roster & roles), `.ai-team/tasks/*.json` (isolated task definitions with strict `touchesFiles` / `allowedPaths` boundary declarations), `.github/CODEOWNERS`, and contract schemas (`docs/contracts/` or `contracts/`).
-- **Phase 5 (Validate)**: Validates task acyclicity (directed acyclic graph with no dependency cycles), verifies all tasks have valid assignees and bounded file lists, and asserts that code ownership rules cover all project components.
+> **BroTel** is an arcade-style 3D top-down / isometric hotel management game built for **CrazyGames** in Unity 3D (WebGL). Players operate a luxury hotel for gym bros—checking in swole guests, blending high-protein shakes, spotting heavy bench presses, cleaning chalk spills, and handling comedic chaos.
 
 ---
 
-## Autonomy Levels
+## 1. Project Context & Stack
 
-Game Dojo operates at different autonomy levels based on context:
-
-| Level | Mode | Human Role | Agent Role |
-|---|---|---|---|
-| Level 3 | **Guided** (Default) | Answers questions, reviews output | Asks questions, generates files |
-| Level 4 | **Supervisory** | Reviews and approves | Does everything, presents for approval |
-| Level 4.5 | **Team Mode** | Collaborates in human+AI squad | Works within git branch boundary, respects assigned task `touchesFiles`, adheres to shared contracts |
-| Level 5 | **Full Autonomy** (`/goal` mode) | Reviews results hours later | Interviews itself, generates, builds, tests, iterates overnight |
-
-### Team Mode (Multi-Developer Squad)
-When a project involves multiple human developers or independent AI-assisted workstations:
-- **Contract-First Scaffolding**: Shared data models and API schemas are locked before parallel work begins.
-- **Strict File Boundaries**: Agents check active git branch and task manifests (`.ai-team/tasks/*.json`), refusing to edit files outside the task's `touchesFiles` (or `allowedPaths`).
-- **Decentralized Coordination**: Each developer runs an individual Antigravity IDE instance; coordination occurs asynchronously via Git commits, PRs, and `.ai-team/` task states (`todo` -> `in_progress` -> `in_review` -> `done` / `completed`).
-- **Zero-Collision Concurrency**: Branch isolation (`feature/<task-id>-<slug>` or `feat/<task-id>-<slug>`) and domain ownership (`.github/CODEOWNERS` or `CODEOWNERS`) eliminate merge collisions.
-
-### The Ratchet Loop
-After initial generation, Game Dojo enters an autonomous improvement cycle:
-- Generate → Validate → Score → Fix → Re-validate → Keep or Discard
-- All changes tracked via git commits for full audit trail
-- Quality target: 95/100 composite score
-- Safety: git reset --hard on any regression
-
-### Agent Swarm Mode
-For complex projects, Game Dojo deploys parallel specialist agents:
-- Architect (orchestrator), Research, Doc Generator, Skill Builder, Integration, Validator, Tester
-- Each agent works on an isolated branch
-- Architect merges the best results
-
-### Comprehension Test
-The ultimate quality gate: spawn a fresh agent with ONLY the generated files. If it can't describe the project accurately, the files need improvement. Target: 90%+ comprehension score.
-
----
-
-## Coding Standards
-
-| Area | Convention |
-|---|---|
-| Languages | TypeScript / JavaScript for scripts and plugins |
-| Documentation | Markdown (`.md`) with YAML frontmatter where required |
-| Data formats | JSON for configs (`plugin.json`, `hooks.json`, `mcp_config.json`); YAML frontmatter in `SKILL.md` |
-| Indentation | 2 spaces for JSON/YAML/JS/TS; 4 spaces for Python if applicable |
-| Line endings | LF preferred; CRLF acceptable on Windows |
-
----
-
-## Generated Output Rules
-
-All generated files **must** adhere to the following:
-
-- **No TODOs, no placeholders, no stubs.** Every file must be complete and immediately usable.
-- **Valid syntax.** JSON files must parse without errors. YAML frontmatter must be well-formed. Markdown must render correctly.
-- **Proper frontmatter.** `SKILL.md` files must include `name` and `description` fields in YAML frontmatter.
-- **Consistent structure.** Follow Antigravity conventions exactly for `plugin.json`, `hooks.json`, and `mcp_config.json` formats.
-- **Rich documentation.** Every generated doc must include section headers, explanatory text, and examples where appropriate.
-
----
-
-## File Naming Conventions
-
-| Type | Convention | Example |
+| Layer | Technology | Version / Specification |
 |---|---|---|
-| Skill folders | `lowercase-kebab-case` | `game-dojo-bootstrap` |
-| Skill entry files | `SKILL.md` (uppercase) | `skills/game-dojo-bootstrap/SKILL.md` |
-| JSON config keys | `camelCase` | `"projectName"`, `"skillDescription"` |
-| JSON file names | `lowercase-kebab-case` or established names | `plugin.json`, `hooks.json` |
-| Documentation files | `UPPER_CASE.md` for root docs, `lowercase-kebab-case.md` for nested | `GEMINI.md`, `DESIGN_SYSTEM.md` |
-| Template files | `lowercase-kebab-case` with appropriate extension | `gemini-template.md` |
+| **Engine** | Unity 3D (C#) | WebGL 2.0 / Universal or Built-in Render Pipeline |
+| **Platform** | CrazyGames | HTML5 WebGL Browser Target |
+| **SDK** | CrazyGames SDK v3 | `https://sdk.crazygames.com/crazygames-sdk-v3.js` |
+| **Bridge** | Unity WebGL `.jslib` | `Assets/Plugins/WebGL/CrazyGamesSDK.jslib` |
+| **3D Asset Pipeline** | Blender 5.0 | Headless Python `bpy` scripting & Blender MCP server |
+| **Package / Tooling** | Node.js / PowerShell | Setup, asset generation, and local CORS dev server |
+| **Team Mode** | Game Dojo 2.0 | `.ai-team/` task manifests, branch isolation, and CODEOWNERS |
 
 ---
 
-## Mandatory Behaviors
+## 2. Team Mode & Collaboration Protocol
 
-### Before Bootstrapping
-- **Always** read the `game-dojo-bootstrap` skill (`skills/game-dojo-bootstrap/SKILL.md`) before starting any project bootstrapping operation. This skill contains the canonical generation logic, templates, and validation rules.
+BroTel is developed by a **4-member squad**:
+- **Technical Lead & Merge Authority**: `@lead` (The User)
+- **C# Gameplay Engineer**: `@gameplay-dev` (Player, AI, Stations, Chaos, Staff)
+- **Monetization & WebGL Engineer**: `@monetization-dev` (CrazyGames SDK v3, JSLib bridge, Ad pacing, Cloud Save)
+- **3D Art & Blender Specialist**: `@art-dev` (Low-poly models, materials, prefabs)
 
-### During Generation
-- **Always** check the `templates/` folder first for base templates before generating any file. Templates define the canonical structure and must be respected.
-- **Check the Local Skills Library** at `C:\Users\Vinod krishna\antigravity_skills` (1,320+ skills) before writing new skills from scratch. When a pre-existing skill matches the tech stack or workflow, import or reference it.
-- **Never** generate empty or stub files. If a file cannot be fully populated, defer its creation and inform the user what additional information is needed.
-- Generate files in **dependency order**:
-  1. `GEMINI.md` (project rules — everything depends on this)
-  2. `AGENTS.md` (agent behavior rules)
-  3. Skills (`SKILL.md` files)
-  4. Plugin configs (`plugin.json`)
-  5. Hook configs (`hooks.json`)
-  6. MCP configs (`mcp_config.json`)
-  7. Documentation and design system files
-
-### After Generation
-- Validate all JSON files for syntactic correctness.
-- Present a summary checklist of everything created.
-- Verify cross-references between files are consistent.
+### Mandatory Team Rules:
+1. **Branch-Task Association**: Every developer and AI agent must work on their assigned git branch matching `feature/<task-id>-<slug>` (e.g. `feature/TASK-001-gameplay-core`).
+2. **Strict Scope Bounding (`touchesFiles`)**: Confine all file creations, edits, and deletions strictly to the paths enumerated in `.ai-team/tasks/<task-id>.json`.
+3. **Contract-First Conformance**: Shared interfaces in `docs/contracts/` are **FROZEN (v1.0-CONTRACT)**. Do not introduce breaking contract changes unilaterally.
+4. **Main Branch Protection**: Direct commits to `main` are strictly forbidden. All changes must be submitted via pull request and merged exclusively by `@lead`.
 
 ---
 
-## Reference Paths
+## 3. C# & Unity Coding Standards
 
-| Resource | Path | Purpose |
-|---|---|---|
-| Specifications | `/docs` | Detailed specs for all features and formats |
-| Design System | `DESIGN_SYSTEM.md` | Visual identity, colors, typography, emoji guide |
-| Templates | `/templates` | Base templates for generated files |
-| Skills | `/skills` | Skill definitions and instructions |
-| Local Skills Library | `C:\Users\Vinod krishna\antigravity_skills` | 1,320+ pre-built skills for direct import/reference |
-| Memory Store | `C:\Users\Vinod krishna\antigravity_skills\.game-dojo-memory\` | Cross-project learning and preferences |
-| Ratchet Log | `ratchet-log.tsv` (in generated project root) | Improvement loop audit trail |
-| Team Coordination | `.ai-team/` | Team roster (`team.json`), task definitions (`tasks/*.json`), and policies |
-| Team Operations Guide | `docs/TEAM_OPERATIONS.md` | Multi-developer human+AI operational procedures and task lifecycle |
+1. **Naming Conventions**:
+   - Classes, Enums, Structs, and Methods: `PascalCase` (`GameManager`, `PlayerController`, `StartWorkout`).
+   - Private Fields: `_camelCase` with leading underscore (`_currentBroCoins`, `_patienceTimer`).
+   - Public Properties: `PascalCase` (`public int BroCoins => _currentBroCoins;`).
+   - Constants: `ALL_CAPS` (`MAX_INVENTORY_SLOTS`).
+2. **Zero Allocation in Update Loops**:
+   - Cache `GetComponent` references in `Awake()` or `Start()`.
+   - Never use `new List<>()` or LINQ queries inside `Update()` or per-frame callbacks.
+3. **WebGL Compatibility**:
+   - Wrap WebGL-specific calls in `#if UNITY_WEBGL && !UNITY_EDITOR` with editor mock fallbacks.
+   - Use `DontDestroyOnLoad` for core singletons (`GameManager`, `EconomyManager`, `CrazyGamesSDK`).
+4. **Ad Audio & Time Handling**:
+   - Always mute `AudioListener.pause = true` and set `Time.timeScale = 0f` on ad start; restore upon ad finish or error.
 
 ---
 
-## Quality Checklist
+## 4. Key Documentation & Contract Links
 
-Before considering any generation task complete, verify:
-
-- [ ] Every generated file has real, meaningful content
-- [ ] All JSON parses without errors
-- [ ] All YAML frontmatter is valid
-- [ ] All Markdown renders correctly
-- [ ] Cross-file references (paths, names) are consistent
-- [ ] File naming conventions are followed
-- [ ] The `game-dojo-bootstrap` skill was consulted
-- [ ] Templates were checked and used where available
-- [ ] Comprehension test score is above 90%
-- [ ] Ratchet loop ran at least 3 iterations
-- [ ] Setup scripts (`scripts/setup.ps1`) are generated and functional
-- [ ] Git repository is initialized with meaningful commit history
-- [ ] Team Mode: `.github/CODEOWNERS` (or root `CODEOWNERS`) exists and maps domain directories to team members
-- [ ] Team Mode: No circular task dependencies exist in `.ai-team/tasks/*.json` (DAG acyclicity verified)
-- [ ] Team Mode: All tasks have valid assignees and explicit `touchesFiles` / `allowedPaths` boundary manifests
+- **Product Requirements**: [docs/PRD.md](file:///d:/Game_dojo/docs/PRD.md)
+- **System Architecture**: [docs/ARCHITECTURE.md](file:///d:/Game_dojo/docs/ARCHITECTURE.md)
+- **Game Design Document**: [docs/GAME_DESIGN.md](file:///d:/Game_dojo/docs/GAME_DESIGN.md)
+- **Monetization Strategy**: [docs/MONETIZATION_STRATEGY.md](file:///d:/Game_dojo/docs/MONETIZATION_STRATEGY.md)
+- **Frozen Contracts**:
+  - [CrazyGames Bridge Contract](file:///d:/Game_dojo/docs/contracts/crazygames-bridge-spec.json)
+  - [Game State Schema](file:///d:/Game_dojo/docs/contracts/game-state-schema.json)
+  - [Station Interface Contract](file:///d:/Game_dojo/docs/contracts/hotel-station-interface.json)
+- **Team Governance**: [.ai-team/team.json](file:///d:/Game_dojo/.ai-team/team.json) | [.ai-team/plan.json](file:///d:/Game_dojo/.ai-team/plan.json)

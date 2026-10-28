@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "TASK-001",
+  "title": "C# Core Gameplay Architecture & Player Controller",
+  "slug": "gameplay-core",
+  "branch": "feature/TASK-001-gameplay-core",
+  "type": "feature",
+  "priority": "critical",
+  "status": "todo",
+  "assignee": {
+    "id": "gameplay-dev",
+    "name": "Teammate 1 - Gameplay Engineer",
+    "githubUsername": "gameplay-dev",
+    "type": "human"
+  },
+  "reviewers": ["lead"],
+  "dependencies": [],
+  "contractDependencies": [
+    "docs/contracts/game-state-schema.json"
+  ],
+  "touchesFiles": [
+    "Assets/Scripts/Core/GameManager.cs",
+    "Assets/Scripts/Core/EconomyManager.cs",
+    "Assets/Scripts/Gameplay/PlayerController.cs",
+    "Assets/Scripts/Gameplay/GuestController.cs",
+    "Assets/Scripts/Gameplay/GuestManager.cs"
+  ],
+  "allowedPaths": [
+    "Assets/Scripts/Core/**",
+    "Assets/Scripts/Gameplay/**"
+  ],
+  "acceptanceCriteria": [
+    "GameManager implements shift timer (180s), game states (Loading, DayActive, DayComplete, Paused), and cleanliness rating (0-100%).",
+    "EconomyManager tracks BroCoins and MuscleTips, plus 2x multiplier buff system.",
+    "PlayerController supports WASD/Arrow keys and ground click/touch raycasting with 3-item inventory stack.",
+    "GuestController models 5 bro archetypes with patience meters, humorous speech barks, and payout on checkout.",
+    "Zero compiler errors, adheres to docs/contracts/game-state-schema.json."
+  ],
+  "verificationCommands": [
+    "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  ],
+  "schedule": {
+    "estimatedHours": 12,
+    "wave": 2
+  }
+}

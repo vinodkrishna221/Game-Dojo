@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contractName": "CrazyGames SDK v3 WebGL Bridge Specification",
+  "version": "1.0.0",
+  "status": "FROZEN (v1.0-CONTRACT)",
+  "freezeDate": "2026-10-28",
+  "reviewers": ["@lead"],
+  "description": "Defines the external C# [DllImport(\"__Internal\")] to JavaScript WebGL jslib bridge methods, callbacks, payloads, and mock responses for BroTel on CrazyGames.",
+  "bridge": {
+    "moduleName": "CrazyGamesBridge",
+    "jslibFile": "Assets/Plugins/WebGL/CrazyGamesSDK.jslib",
+    "csharpWrapper": "Assets/Scripts/CrazyGames/CrazyGamesSDK.cs",
+    "receiverGameObjectName": "CrazyGamesBridgeReceiver"
+  },
+  "methods": [
+    {
+      "name": "CrazyGames_Init",
+      "csharpSignature": "void CrazyGames_Init()",
+      "jsSignature": "CrazyGames_Init()",
+      "description": "Initializes window.CrazyGames.SDK asynchronously. Must be invoked at game boot.",
+      "callbacks": {
+        "success": "OnSDKInitialized",
+        "error": "OnSDKInitError"
+      }
+    },
+    {
+      "name": "CrazyGames_RequestMidgameAd",
+      "csharpSignature": "void CrazyGames_RequestMidgameAd(string gameObjectName, string callbackSuccess, string callbackError)",
+      "jsSignature": "CrazyGames_RequestMidgameAd(gameObjectName, callbackSuccess, callbackError)",
+      "description": "Requests a midgame interstitial ad. Mutes audio and pauses game during playback.",
+      "callbacks": {
+        "success": "callbackSuccess (e.g. OnMidgameAdSuccess)",
+        "error": "callbackError (e.g. OnMidgameAdError)"
+      }
+    },
+    {
+      "name": "CrazyGames_RequestRewardedAd",
+      "csharpSignature": "void CrazyGames_RequestRewardedAd(string gameObjectName, string callbackSuccess, string callbackError)",
+      "jsSignature": "CrazyGames_RequestRewardedAd(gameObjectName, callbackSuccess, callbackError)",
+      "description": "Requests a rewarded video ad. Grants reward only on completed playback.",
+      "callbacks": {
+        "success": "callbackSuccess (e.g. OnRewardedAdSuccess)",
+        "error": "callbackError (e.g. OnRewardedAdError)"
+      }
+    },
+    {
+      "name": "CrazyGames_GameplayStart",
+      "csharpSignature": "void CrazyGames_GameplayStart()",
+      "jsSignature": "CrazyGames_GameplayStart()",
+      "description": "Signals that active gameplay has started or resumed."
+    },
+    {
+      "name": "CrazyGames_GameplayStop",
+      "csharpSignature": "void CrazyGames_GameplayStop()",
+      "jsSignature": "CrazyGames_GameplayStop()",
+      "description": "Signals that active gameplay has paused or stopped (menu, shop, day end)."
+    },
+    {
+      "name": "CrazyGames_HappyTime",
+      "csharpSignature": "void CrazyGames_HappyTime()",
+      "jsSignature": "CrazyGames_HappyTime()",
+      "description": "Celebratory cheer trigger on floor unlock or major accomplishment."
+    },
+    {
+      "name": "CrazyGames_HasAdblock",
+      "csharpSignature": "int CrazyGames_HasAdblock()",
+      "jsSignature": "CrazyGames_HasAdblock()",
+      "description": "Returns 1 if adblock is detected, 0 otherwise."
+    },
+    {
+      "name": "CrazyGames_GetEnvironment",
+      "csharpSignature": "string CrazyGames_GetEnvironment()",
+      "jsSignature": "CrazyGames_GetEnvironment()",
+      "description": "Returns 'local', 'crazygames', or 'disabled'."
+    },
+    {
+      "name": "CrazyGames_SaveData",
+      "csharpSignature": "void CrazyGames_SaveData(string key, string jsonData, string gameObjectName, string callbackSuccess, string callbackError)",
+      "jsSignature": "CrazyGames_SaveData(key, jsonData, gameObjectName, callbackSuccess, callbackError)",
+      "description": "Persists game state JSON to CrazyGames Cloud Save."
+    },
+    {
+      "name": "CrazyGames_LoadData",
+      "csharpSignature": "void CrazyGames_LoadData(string key, string gameObjectName, string callbackSuccess, string callbackError)",
+      "jsSignature": "CrazyGames_LoadData(key, gameObjectName, callbackSuccess, callbackError)",
+      "description": "Retrieves persisted game state JSON from CrazyGames Cloud Save."
+    }
+  ],
+  "mockFixtures": {
+    "environment": "local",
+    "hasAdblock": false,
+    "user": {
+      "username": "LocalBro99",
+      "system": {
+        "browser": "Chrome",
+        "os": "Windows"
+      }
+    },
+    "loadDataResponse": {
+      "broCoins": 1500,
+      "muscleTips": 200,
+      "hotelLevel": 2,
+      "unlockedStations": ["reception_desk", "protein_bar", "bed_suite_1", "bed_suite_2"]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+# ==============================================================================
+# BroTel: Gym Bro Hotel Tycoon - Code Owners Configuration
+# ==============================================================================
+# All pull requests affecting specific paths will automatically request
+# review from the assigned domain specialist. The project lead (@lead) has
+# final merge authority to main.
+
+# ------------------------------------------------------------------------------
+# Project Governance, Contracts & Documentation (Lead)
+# ------------------------------------------------------------------------------
+/.ai-team/                  @lead
+/.github/                   @lead
+/docs/                      @lead
+/scripts/                   @lead
+/GEMINI.md                  @lead
+/AGENTS.md                  @lead
+/DESIGN_SYSTEM.md           @lead
+/README.md                  @lead
+/package.json               @lead
+
+# ------------------------------------------------------------------------------
+# C# Gameplay, Player Controller, Guest AI & Stations (Gameplay Engineer)
+# ------------------------------------------------------------------------------
+/Assets/Scripts/Core/       @gameplay-dev @lead
+/Assets/Scripts/Gameplay/   @gameplay-dev @lead
+
+# ------------------------------------------------------------------------------
+# CrazyGames SDK v3, WebGL Bridge & Monetization (Monetization Engineer)
+# ------------------------------------------------------------------------------
+/Assets/Plugins/WebGL/          @monetization-dev @lead
+/Assets/Scripts/CrazyGames/     @monetization-dev @lead
+/Assets/Scripts/Monetization/   @monetization-dev @lead
+/Assets/WebGLTemplates/         @monetization-dev @lead
+
+# ------------------------------------------------------------------------------
+# 3D Art, Procedural Blender Generation & Prefabs (Art Specialist)
+# ------------------------------------------------------------------------------
+/tools/blender/             @art-dev @lead
+/Assets/Models/             @art-dev @lead
+/Assets/Materials/          @art-dev @lead
+/Assets/Prefabs/            @art-dev @lead

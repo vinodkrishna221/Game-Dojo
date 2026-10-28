@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "TASK-005",
+  "title": "Chaos Event Generator & Automated Bro Staff",
+  "slug": "chaos-and-staff",
+  "branch": "feature/TASK-005-chaos-and-staff",
+  "type": "feature",
+  "priority": "high",
+  "status": "todo",
+  "assignee": {
+    "id": "gameplay-dev",
+    "name": "Teammate 1 - Gameplay Engineer",
+    "githubUsername": "gameplay-dev",
+    "type": "human"
+  },
+  "reviewers": ["lead"],
+  "dependencies": ["TASK-001"],
+  "contractDependencies": [
+    "docs/contracts/game-state-schema.json"
+  ],
+  "touchesFiles": [
+    "Assets/Scripts/Gameplay/ChaosEventController.cs",
+    "Assets/Scripts/Gameplay/StaffManager.cs",
+    "Assets/Scripts/Gameplay/BouncerBro.cs",
+    "Assets/Scripts/Gameplay/BaristaBro.cs",
+    "Assets/Scripts/Gameplay/SweeperBro.cs"
+  ],
+  "allowedPaths": [
+    "Assets/Scripts/Gameplay/**"
+  ],
+  "acceptanceCriteria": [
+    "ChaosEventController triggers 4 random chaos events: Protein Powder Spill, Dumbbell Drop Crack, Mirror Flex Stand-Off, Influencer Live-Stream.",
+    "Protein Powder Spill slows player/guest movement by 50% until mopped.",
+    "Dumbbell Drop Crack causes camera shake, cracks floor, and reduces hotel cleanliness rating.",
+    "StaffManager manages hireable, upgradable bro workers with BroCoin purchases.",
+    "BouncerBro patrols and auto-resolves flex stand-offs and removes enraged guests.",
+    "BaristaBro auto-brews and dispenses protein shakes.",
+    "SweeperBro auto-navigates to spills and chalk hazards to mop them.",
+    "Zero compiler errors."
+  ],
+  "verificationCommands": [
+    "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  ],
+  "schedule": {
+    "estimatedHours": 12,
+    "wave": 3
+  }
+}

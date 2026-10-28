@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "TASK-006",
+  "title": "CrazyGames User Authentication, Cloud Save & Banner Ads",
+  "slug": "cloud-save-and-auth",
+  "branch": "feature/TASK-006-cloud-save-and-auth",
+  "type": "feature",
+  "priority": "medium",
+  "status": "todo",
+  "assignee": {
+    "id": "monetization-dev",
+    "name": "Teammate 2 - Monetization & WebGL Engineer",
+    "githubUsername": "monetization-dev",
+    "type": "human"
+  },
+  "reviewers": ["lead"],
+  "dependencies": ["TASK-002"],
+  "contractDependencies": [
+    "docs/contracts/crazygames-bridge-spec.json",
+    "docs/contracts/game-state-schema.json"
+  ],
+  "touchesFiles": [
+    "Assets/Scripts/CrazyGames/CrazyGamesAuth.cs",
+    "Assets/Scripts/CrazyGames/CrazyGamesCloudSave.cs",
+    "Assets/Scripts/CrazyGames/CrazyGamesBanner.cs"
+  ],
+  "allowedPaths": [
+    "Assets/Scripts/CrazyGames/**",
+    "Assets/Scripts/Monetization/**",
+    "Assets/Plugins/WebGL/**"
+  ],
+  "acceptanceCriteria": [
+    "CrazyGamesAuth retrieves user profile data (username, avatar) via window.CrazyGames.SDK.user.getUser().",
+    "CrazyGamesCloudSave persists and restores game state JSON conforming to docs/contracts/game-state-schema.json.",
+    "CrazyGamesBanner manages responsive 300x250 or 728x90 banner ad requesting on menus and pause screens.",
+    "Maintains local PlayerPrefs fallback when offline or outside CrazyGames domain.",
+    "Zero compiler errors."
+  ],
+  "verificationCommands": [
+    "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  ],
+  "schedule": {
+    "estimatedHours": 8,
+    "wave": 3
+  }
+}

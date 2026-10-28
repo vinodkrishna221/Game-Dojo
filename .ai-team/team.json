@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": {
+    "name": "BroTel: Gym Bro Hotel Tycoon",
+    "slug": "brotel-tycoon",
+    "description": "3D Isometric / Top-Down Arcade Hotel Management Game for CrazyGames with CrazyGames SDK v3 and Blender MCP 3D Art Pipeline",
+    "repository": "https://github.com/lead/brotel-tycoon",
+    "defaultBranch": "main"
+  },
+  "teamName": "BroTel Core Squad",
+  "version": "1.0.0",
+  "lead": "lead",
+  "createdAt": "2026-10-28",
+  "updatedAt": "2026-10-28",
+  "policies": {
+    "enforceTouchesFiles": true,
+    "requireContractConformance": true,
+    "requireReviewForContractChanges": true,
+    "requirePrForMain": true,
+    "minPrApprovals": 1,
+    "requireTestsPassing": true,
+    "requireCodeownersReview": true,
+    "autoAssignCodeowners": true,
+    "taskBranchPrefix": "feature/",
+    "allowDirectMainCommits": false
+  },
+  "roles": {
+    "lead": {
+      "title": "Technical Lead & Merge Authority",
+      "description": "Owns architecture, frozen contracts, PR reviews, and exclusive merge authority to main.",
+      "permissions": {
+        "canEditPlan": true,
+        "canCreateTasks": true,
+        "canAssignTasks": true,
+        "canModifySharedConfigs": true,
+        "canApprovePRs": true,
+        "canMergeToMain": true
+      }
+    },
+    "gameplay_engineer": {
+      "title": "C# Gameplay & Systems Engineer",
+      "description": "Implements player controller, guest AI, hotel stations, chaos events, and staff automation in Unity C#.",
+      "permissions": {
+        "canEditPlan": false,
+        "canCreateTasks": true,
+        "canAssignTasks": false,
+        "canModifySharedConfigs": false,
+        "canApprovePRs": false,
+        "canMergeToMain": false
+      }
+    },
+    "monetization_engineer": {
+      "title": "CrazyGames SDK & WebGL Bridge Engineer",
+      "description": "Implements CrazyGames SDK v3 WebGL jslib bridge, ad placements, cloud save, and custom WebGL templates.",
+      "permissions": {
+        "canEditPlan": false,
+        "canCreateTasks": true,
+        "canAssignTasks": false,
+        "canModifySharedConfigs": false,
+        "canApprovePRs": false,
+        "canMergeToMain": false
+      }
+    },
+    "3d_art_specialist": {
+      "title": "3D Art & Blender Pipeline Specialist",
+      "description": "Implements procedural Blender 5.0 Python generation scripts, low-poly 3D models, materials, and prefab manifests.",
+      "permissions": {
+        "canEditPlan": false,
+        "canCreateTasks": true,
+        "canAssignTasks": false,
+        "canModifySharedConfigs": false,
+        "canApprovePRs": false,
+        "canMergeToMain": false
+      }
+    }
+  },
+  "members": [
+    {
+      "id": "lead",
+      "name": "Project Lead",
+      "email": "lead@brotel.game",
+      "githubUsername": "lead",
+      "role": "lead",
+      "type": "human",
+      "weeklyHours": 40,
+      "experienceLevel": "lead",
+      "timezone": "UTC",
+      "status": "active",
+      "assignedDomains": [
+        "architecture",
+        "contracts",
+        "team_governance",
+        "pr_merging"
+      ],
+      "activeTasks": []
+    },
+    {
+      "id": "gameplay-dev",
+      "name": "Teammate 1 - Gameplay Engineer",
+      "email": "gameplay@brotel.game",
+      "githubUsername": "gameplay-dev",
+      "role": "gameplay_engineer",
+      "type": "human",
+      "weeklyHours": 40,
+      "experienceLevel": "senior",
+      "timezone": "UTC",
+      "status": "active",
+      "assignedDomains": [
+        "gameplay_core",
+        "stations",
+        "guest_ai",
+        "chaos_events"
+      ],
+      "activeTasks": [
+        "TASK-001",
+        "TASK-004",
+        "TASK-005"
+      ]
+    },
+    {
+      "id": "monetization-dev",
+      "name": "Teammate 2 - Monetization & WebGL Engineer",
+      "email": "monetization@brotel.game",
+      "githubUsername": "monetization-dev",
+      "role": "monetization_engineer",
+      "type": "human",
+      "weeklyHours": 40,
+      "experienceLevel": "senior",
+      "timezone": "UTC",
+      "status": "active",
+      "assignedDomains": [
+        "crazygames_sdk",
+        "webgl_template",
+        "cloud_save",
+        "ad_monetization"
+      ],
+      "activeTasks": [
+        "TASK-002",
+        "TASK-006"
+      ]
+    },
+    {
+      "id": "art-dev",
+      "name": "Teammate 3 - 3D Art & Blender Specialist",
+      "email": "art@brotel.game",
+      "githubUsername": "art-dev",
+      "role": "3d_art_specialist",
+      "type": "human",
+      "weeklyHours": 40,
+      "experienceLevel": "senior",
+      "timezone": "UTC",
+      "status": "active",
+      "assignedDomains": [
+        "blender_pipeline",
+        "3d_models",
+        "materials",
+        "prefabs"
+      ],
+      "activeTasks": [
+        "TASK-003"
+      ]
+    }
+  ],
+  "domainOwnership": {
+    "gameplay": {
+      "paths": [
+        "Assets/Scripts/Core/**",
+        "Assets/Scripts/Gameplay/**"
+      ],
+      "primaryOwners": ["gameplay-dev"],
+      "backupOwners": ["lead"]
+    },
+    "monetization": {
+      "paths": [
+        "Assets/Plugins/WebGL/**",
+        "Assets/Scripts/CrazyGames/**",
+        "Assets/Scripts/Monetization/**",
+        "Assets/WebGLTemplates/**"
+      ],
+      "primaryOwners": ["monetization-dev"],
+      "backupOwners": ["lead"]
+    },
+    "art": {
+      "paths": [
+        "tools/blender/**",
+        "Assets/Models/**",
+        "Assets/Materials/**",
+        "Assets/Prefabs/**"
+      ],
+      "primaryOwners": ["art-dev"],
+      "backupOwners": ["lead"]
+    },
+    "contracts_and_governance": {
+      "paths": [
+        ".ai-team/**",
+        ".github/**",
+        "docs/**",
+        "GEMINI.md",
+        "AGENTS.md",
+        "DESIGN_SYSTEM.md",
+        "README.md",
+        "package.json"
+      ],
+      "primaryOwners": ["lead"],
+      "backupOwners": []
+    }
+  },
+  "communication": {
+    "chatChannel": "#brotel-dev",
+    "prReviewPolicy": "All feature pull requests require review and merge approval by the project lead (@lead). Teammates must adhere strictly to task touchesFiles boundaries."
+  }
+}

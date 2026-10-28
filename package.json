@@ -1,0 +1,29 @@
+{
+  "name": "brotel-tycoon",
+  "version": "1.0.0",
+  "private": true,
+  "description": "BroTel: Gym Bro Hotel Tycoon - 3D Arcade Management Game for CrazyGames with CrazyGames SDK v3 and Blender MCP Art Pipeline",
+  "scripts": {
+    "setup": "powershell -ExecutionPolicy Bypass -File ./scripts/setup.ps1",
+    "dev": "powershell -ExecutionPolicy Bypass -File ./scripts/serve-local.ps1",
+    "generate:assets": "powershell -ExecutionPolicy Bypass -File ./scripts/generate-3d-assets.ps1",
+    "build:webgl": "powershell -ExecutionPolicy Bypass -File ./scripts/build-webgl.ps1",
+    "test:verify": "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  },
+  "keywords": [
+    "unity",
+    "webgl",
+    "crazygames",
+    "crazygames-sdk-v3",
+    "tycoon",
+    "hotel-management",
+    "blender-mcp",
+    "gym-bro",
+    "arcade-game"
+  ],
+  "author": "Antigravity Swarm",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}

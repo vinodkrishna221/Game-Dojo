@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BroTel Game State Schema",
+  "version": "1.0.0",
+  "status": "FROZEN (v1.0-CONTRACT)",
+  "freezeDate": "2026-10-28",
+  "reviewers": ["@lead"],
+  "description": "JSON schema for local player prefs and CrazyGames Cloud Save serialization.",
+  "type": "object",
+  "required": [
+    "saveVersion",
+    "lastSavedTimestamp",
+    "broCoins",
+    "muscleTips",
+    "currentDay",
+    "hotelReputation",
+    "unlockedFloors",
+    "staffLevels"
+  ],
+  "properties": {
+    "saveVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "lastSavedTimestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "broCoins": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Standard in-game cash earned from guest check-ins and hotel services."
+    },
+    "muscleTips": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Premium tip currency earned from high-satisfaction workouts and spotting."
+    },
+    "currentDay": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "The current shift/day cycle."
+    },
+    "hotelReputation": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Overall hotel tier unlocking new guest archetypes."
+    },
+    "unlockedFloors": {
+      "type": "array",
+      "items": { "type": "integer" },
+      "description": "List of unlocked hotel floor indices."
+    },
+    "stationUpgrades": {
+      "type": "object",
+      "properties": {
+        "receptionDesk": { "type": "integer", "default": 1 },
+        "proteinBar": { "type": "integer", "default": 0 },
+        "squatRack": { "type": "integer", "default": 0 },
+        "saunaZone": { "type": "integer", "default": 0 },
+        "bedSuitesCount": { "type": "integer", "default": 2 }
+      }
+    },
+    "staffLevels": {
+      "type": "object",
+      "properties": {
+        "bouncerBro": { "type": "integer", "default": 0 },
+        "baristaBro": { "type": "integer", "default": 0 },
+        "sweeperBro": { "type": "integer", "default": 0 }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "masterVolume": { "type": "number", "minimum": 0.0, "maximum": 1.0, "default": 1.0 },
+        "sfxVolume": { "type": "number", "minimum": 0.0, "maximum": 1.0, "default": 1.0 },
+        "musicVolume": { "type": "number", "minimum": 0.0, "maximum": 1.0, "default": 0.8 }
+      }
+    }
+  }
+}

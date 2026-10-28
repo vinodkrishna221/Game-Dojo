@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "TASK-004",
+  "title": "Interactive Hotel Stations (5 Core Stations)",
+  "slug": "hotel-stations",
+  "branch": "feature/TASK-004-hotel-stations",
+  "type": "feature",
+  "priority": "high",
+  "status": "todo",
+  "assignee": {
+    "id": "gameplay-dev",
+    "name": "Teammate 1 - Gameplay Engineer",
+    "githubUsername": "gameplay-dev",
+    "type": "human"
+  },
+  "reviewers": ["lead"],
+  "dependencies": ["TASK-001"],
+  "contractDependencies": [
+    "docs/contracts/hotel-station-interface.json"
+  ],
+  "touchesFiles": [
+    "Assets/Scripts/Gameplay/HotelStation.cs",
+    "Assets/Scripts/Gameplay/ReceptionDeskStation.cs",
+    "Assets/Scripts/Gameplay/ProteinBarStation.cs",
+    "Assets/Scripts/Gameplay/SquatRackStation.cs",
+    "Assets/Scripts/Gameplay/BedSuiteStation.cs",
+    "Assets/Scripts/Gameplay/SaunaStation.cs"
+  ],
+  "allowedPaths": [
+    "Assets/Scripts/Gameplay/**"
+  ],
+  "acceptanceCriteria": [
+    "Implements abstract HotelStation base class adhering to IHotelStation interface contract.",
+    "ReceptionDeskStation manages queue and check-in issuing keycards.",
+    "ProteinBarStation blends shakes over 3 seconds and outputs ProteinShake item.",
+    "SquatRackStation implements spotter mini-interaction with 5-second countdown gauge.",
+    "BedSuiteStation manages clean/dirty bed state and guest sleep cycle.",
+    "SaunaStation manages steam replenish and towel delivery.",
+    "Strict conformance to docs/contracts/hotel-station-interface.json."
+  ],
+  "verificationCommands": [
+    "powershell -ExecutionPolicy Bypass -File ./scripts/verify-project.ps1"
+  ],
+  "schedule": {
+    "estimatedHours": 14,
+    "wave": 3
+  }
+}

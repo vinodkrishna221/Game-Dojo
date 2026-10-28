@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "BroTel: Gym Bro Hotel Tycoon",
+  "version": "1.0.0",
+  "prefabs": [
+    {
+      "id": "prefab_gym_bro",
+      "modelFile": "Assets/Models/gym_bro_character.obj",
+      "prefabRole": "Character",
+      "collider": {
+        "type": "CapsuleCollider",
+        "radius": 0.45,
+        "height": 2.1,
+        "center": [0, 0, 1.05]
+      },
+      "interactionTriggerRadius": 1.5,
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "prefab_dumbbell",
+      "modelFile": "Assets/Models/dumbbell.obj",
+      "prefabRole": "ItemProp",
+      "collider": {
+        "type": "BoxCollider",
+        "size": [0.65, 0.4, 0.4],
+        "center": [0, 0, 0]
+      },
+      "interactionTriggerRadius": 1.0,
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "prefab_protein_shaker",
+      "modelFile": "Assets/Models/protein_shaker.obj",
+      "prefabRole": "CarryItem",
+      "collider": {
+        "type": "BoxCollider",
+        "size": [0.3, 0.3, 0.5],
+        "center": [0, 0, 0.25]
+      },
+      "interactionTriggerRadius": 0.8,
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "prefab_reception_desk",
+      "modelFile": "Assets/Models/reception_desk.obj",
+      "prefabRole": "Station",
+      "collider": {
+        "type": "BoxCollider",
+        "size": [2.3, 0.9, 1.2],
+        "center": [0, 0, 0.6]
+      },
+      "interactionTriggerRadius": 2.2,
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "prefab_squat_rack",
+      "modelFile": "Assets/Models/barbell_squat_rack.obj",
+      "prefabRole": "Station",
+      "collider": {
+        "type": "BoxCollider",
+        "size": [2.4, 1.2, 2.6],
+        "center": [0, 0, 1.3]
+      },
+      "interactionTriggerRadius": 2.5,
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "prefab_bed_suite",
+      "modelFile": "Assets/Models/hotel_bed_suite.obj",
+      "prefabRole": "Station",
+      "collider": {
+        "type": "BoxCollider",
+        "size": [2.0, 2.4, 0.8],
+        "center": [0, 0, 0.4]
+      },
+      "interactionTriggerRadius": 2.2,
+      "scale": [1.0, 1.0, 1.0]
+    },
+    {
+      "id": "prefab_sauna_bench",
+      "modelFile": "Assets/Models/sauna_bench.obj",
+      "prefabRole": "Station",
+      "collider": {
+        "type": "BoxCollider",
+        "size": [2.4, 1.8, 1.2],
+        "center": [0, 0, 0.6]
+      },
+      "interactionTriggerRadius": 2.5,
+      "scale": [1.0, 1.0, 1.0]
+    }
+  ]
+}

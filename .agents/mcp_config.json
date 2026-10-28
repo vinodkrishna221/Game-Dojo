@@ -1,9 +1,19 @@
 {
   "mcpServers": {
+    "blender": {
+      "command": "python",
+      "args": ["-m", "blender_mcp_server"],
+      "description": "Blender MCP server for procedural 3D model generation, material creation, and automated Unity asset exporting."
+    },
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@anthropic/sequential-thinking-mcp"],
-      "description": "Enables structured multi-step reasoning for complex architecture decisions, trade-off analysis, and dependency resolution during the project scaffolding phase."
+      "description": "Enables structured multi-step reasoning for architecture decisions, team decomposition, and contract verification."
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp"],
+      "description": "Browser automation and DevTools inspection for verifying CrazyGames WebGL builds, console errors, and ad callbacks."
     }
   }
 }
