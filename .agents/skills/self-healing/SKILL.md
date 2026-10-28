@@ -19,12 +19,13 @@ Activate this skill when:
 - After any batch file generation or modification
 - When the user reports a configuration issue
 - Proactively before presenting a bootstrapped project to the user
+- When Team Mode artifacts (.ai-team/, CODEOWNERS) contain schema defects, broken branch slugs, cyclic task dependencies, or conflicting un-sequenced file collisions
 
 ---
 
 ## Auto-Fix Procedures
 
-Run all six procedures in order. Each procedure operates independently and produces its own fix count.
+Run all seven procedures in order. Each procedure operates independently and produces its own fix count.
 
 ---
 
@@ -301,6 +302,188 @@ Fixes:
 
 ---
 
+### 7. Team Mode Configuration Repair
+
+**Scope:** `.ai-team/team.json`, `.ai-team/plan.json`, `.ai-team/tasks/*.json`, root `CODEOWNERS`, and `.github/CODEOWNERS`.
+
+When Team Mode is active, multi-agent development and human collaboration require rigorous metadata coordination to avoid branch collisions, dependency deadlocks, un-sequenced file edit conflicts, and orphan ownership mappings. This procedure enforces schema contracts, detects and breaks dependency cycles, validates branch naming conventions, eliminates concurrent file collisions (including glob overlaps), and reconciles CODEOWNERS with the team roster.
+
+#### A. Schema Validation for `.ai-team/*.json`
+
+**Scope:** `.ai-team/team.json`, `.ai-team/plan.json`, and `.ai-team/tasks/*.json`.
+
+**Detection:**
+1. Validate `.ai-team/team.json`:
+   - Root fields: `teamId` (string), `teamName` (string), `lead` (string), `members` (array with ≥ 1 member).
+   - Member fields: `id` (lowercase kebab-case), `name` (string), `role` (string), `gitUser` or `githubUsername` (string starting with `@`), `availability` (`"active"` | `"idle"` | `"busy"` | `"offline"`), `capabilities` (array), `maxConcurrentTasks` (integer ≥ 1), `assignedTaskIds` or `activeTasks` (array).
+2. Validate `.ai-team/plan.json`:
+   - Root fields: `planId` (string), `currentMilestone` (string), `milestones` (array), `taskIndex` (array).
+   - Milestone fields: `id`, `title`, `description`, `status` (`"todo"` | `"in_progress"` | `"done"` | `"completed"`), `targetDate`, `tasks` or `taskIds` (array of task IDs).
+   - `taskIndex` fields: `id`, `title`, `slug`, `milestoneId`, `assignedTo` (or `assignee`), `status`, `branch`.
+3. Validate each `.ai-team/tasks/<task-id>.json`:
+   - Required fields: `id`, `title`, `slug`, `milestoneId`, `assignedTo` (or `assignee`), `ownerGit` (or `gitUser`), `status` (`"todo"` | `"in_progress"` | `"in_review"` | `"done"` | `"completed"` | `"blocked"`), `branch`, `dependencies` (or `blockedBy` array), `touchesFiles` (or `allowedPaths` array), `description`, `acceptanceCriteria` (array with ≥ 1 criteria).
+   - Ensure filename basename matches `id` (e.g. `task-003.json` must declare `"id": "task-003"`).
+
+**Common Fixes:**
+
+| Issue | Detection | Fix |
+|---|---|---|
+| Null or missing array fields | `dependencies: null`, missing `touchesFiles`, or missing `capabilities` | Initialize to empty array `[]` |
+| Missing member availability | `availability` field missing in `team.json` | Set default to `"idle"` |
+| Missing concurrency limit | `maxConcurrentTasks` missing | Set default to `2` |
+| Missing task status | `status` missing in task JSON | Set default to `"todo"` |
+| Status naming discrepancy | Task uses `"completed"` where tooling expects `"done"` (or vice-versa) | Standardize or preserve acceptance of both `"done"` and `"completed"` as finished states |
+| Boundary manifest alias mismatch | Task declares `allowedPaths` instead of `touchesFiles` (or vice-versa) | Synchronize both fields so tooling expecting either `touchesFiles` or `allowedPaths` succeeds |
+| Assignee field variation | Task declares `assignee` as string ID or `{ id, name }` object | Ensure `assignedTo` string matches member ID, preserving nested `assignee` object |
+| Handle field variation | Member declares `githubUsername` instead of `gitUser` (or vice-versa) | Synchronize both fields and ensure leading `@` prefix |
+| Task ID / filename mismatch | `task-003.json` contains `"id": "task-3"` | Rewrite `"id"` in JSON to match filename basename (`task-003`) |
+| Incomplete `taskIndex` in `plan.json` | Tasks exist in `.ai-team/tasks/` but absent from `taskIndex` | Rebuild `taskIndex` from all `.ai-team/tasks/*.json` files |
+| Desynchronized `assignedTaskIds` | Member `assignedTaskIds` in `team.json` does not match task assignments | Recompute member `assignedTaskIds` by scanning `assignedTo` / `assignee` across all task files |
+
+#### B. Circular Dependency Detection in Tasks
+
+**Scope:** `.ai-team/tasks/*.json`.
+
+**Detection:**
+Tasks declare prerequisite task IDs in their `dependencies` (or `blockedBy`) array. A circular dependency (e.g., Task A depends on Task B, while Task B depends on Task A, or an indirect cycle $A \to B \to C \to A$) produces an execution deadlock where no task can begin.
+
+**Detection Process (PowerShell):**
+```powershell
+$taskFiles = Get-ChildItem -Path ".ai-team/tasks" -Filter "*.json"
+$tasks = $taskFiles | ForEach-Object { Get-Content $_.FullName -Raw | ConvertFrom-Json }
+
+$graph = @{}
+$taskMap = @{}
+foreach ($t in $tasks) {
+    $deps = @()
+    if ($t.dependencies) { $deps += @($t.dependencies) }
+    if ($t.blockedBy) { $deps += @($t.blockedBy) }
+    $graph[$t.id] = $deps | Select-Object -Unique
+    $taskMap[$t.id] = $t
+}
+
+$visited = @{}
+$inStack = @{}
+$detectedCycles = [System.Collections.Generic.List[string]]::new()
+$missingDeps = [System.Collections.Generic.List[string]]::new()
+
+function Test-TaskCycle($node, $path) {
+    $visited[$node] = $true
+    $inStack[$node] = $true
+    $currentPath = @($path) + $node
+
+    foreach ($dep in $graph[$node]) {
+        if (-not $graph.ContainsKey($dep)) {
+            $missingDeps.Add("$node -> missing($dep)")
+            continue
+        }
+        if (-not $visited[$dep]) {
+            Test-TaskCycle $dep $currentPath
+        } elseif ($inStack[$dep]) {
+            $cycleStart = [Array]::IndexOf($currentPath, $dep)
+            if ($cycleStart -ge 0) {
+                $cycle = ($currentPath[$cycleStart..($currentPath.Length - 1)] + $dep) -join " -> "
+                $detectedCycles.Add($cycle)
+            }
+        }
+    }
+    $inStack[$node] = $false
+}
+
+foreach ($id in $graph.Keys) {
+    if (-not $visited[$id]) {
+        Test-TaskCycle $id @()
+    }
+}
+```
+
+**Common Fixes:**
+
+| Issue | Detection | Fix |
+|---|---|---|
+| Self-dependency | Task includes its own `id` in `dependencies` | Remove self-reference from `dependencies` array |
+| Dangling / Missing dependency | Task depends on non-existent task ID | Remove non-existent task ID from `dependencies` and log warning |
+| Direct 2-task cycle (`A <-> B`) | Task A depends on B, Task B depends on A | Compare milestone order and numeric task ID. A backward dependency occurs when an earlier task depends on a future task (e.g. `task-001` depending on future `task-002`). Remove the inverted dependency from the earlier task (`task-001.dependencies`), preserving natural forward sequence (`task-001` precedes `task-002`) |
+| Complex multi-task cycle | Cycle path spanning 3+ tasks (e.g. `T1 -> T2 -> T3 -> T1`) | Inspect milestone sequencing and task IDs along the cycle path. Identify the inverted back-edge where a task in an earlier milestone depends on a task in a later milestone (or lower task ID depends on higher task ID in same milestone), and remove that specific back-edge. If sequence is ambiguous, flag as unfixable with exact cycle trace |
+
+#### C. Branch Name & Slug Convention Validation
+
+**Scope:** `.ai-team/tasks/*.json`, `.ai-team/plan.json`, and local Git branches.
+
+**Detection:**
+Task branches must strictly conform to the format:
+`feature/<task-id>-<slug>` (or `feat/<task-id>-<slug>`)
+where:
+- `<task-id>` matches `id` in task JSON (e.g. `task-003`)
+- `<slug>` is lowercase kebab-case matching `slug` in task JSON (e.g. `auth-middleware`)
+
+**Common Fixes:**
+
+| Issue | Detection | Fix |
+|---|---|---|
+| Missing prefix | Branch is `task-003-auth-middleware` | Prepend `feature/`: `feature/task-003-auth-middleware` |
+| Malformed slug in branch | Branch contains underscores or uppercase (e.g. `feature/task-003-Auth_Middleware`) | Sanitize slug to lowercase kebab-case (`feature/task-003-auth-middleware`) |
+| Slug mismatch with task file | Branch slug differs from `slug` field in task JSON | Re-generate branch string as `feature/$($task.id)-$($task.slug)` |
+| Local git branch has outdated name | Git branch exists with non-standard name | Rename local git branch using `git branch -m <old-name> <new-name>` |
+| Branch missing from Git repository | Branch declared in task file does not exist locally | Execute `git branch <branch-name>` from current branch |
+
+#### D. `touchesFiles` Integrity & Conflict Detection
+
+**Scope:** `touchesFiles` (and `allowedPaths`) boundary manifests across all `.ai-team/tasks/*.json`.
+
+**Detection:**
+Every task defines the exact set of repository files it is authorized to touch (using `touchesFiles` or `allowedPaths`). Two integrity checks are performed:
+
+1. **Path Normalization & Scope:**
+   - Detect backward slashes `\` or leading `./`.
+   - Ensure paths do not target `.git/`, `node_modules/`, `dist/`, or paths escaping the project root (`../`).
+   - Verify each file is either an existing file on disk or a planned file declared in the architecture specification.
+
+2. **Un-sequenced Concurrent Conflict Detection (including globs):**
+   - Scan every pair of active tasks $(T_A, T_B)$ where neither task is finished (`"done"` or `"completed"`).
+   - Identify overlapping file paths:
+     • Exact normalized path equality (e.g. `src/lib/auth.ts` vs `src/lib/auth.ts`).
+     • Directory or wildcard containment (e.g. `src/components/**` contains `src/components/dashboard/Card.tsx`, or `src/api/` contains `src/api/users.ts`).
+   - Check dependency relationship: Determine if $T_B$ transitively depends on $T_A$ or $T_A$ transitively depends on $T_B$.
+   - **Conflict Condition:** If two concurrent active tasks touch overlapping files without any dependency relationship, parallel execution will result in merge conflicts or race conditions.
+
+**Common Fixes:**
+
+| Issue | Detection | Fix |
+|---|---|---|
+| Non-normalized file path | Contains `\` or leading `./` (e.g. `.\src\lib\auth.ts`) | Normalize to forward slashes without leading `./`: `src/lib/auth.ts` |
+| Duplicate paths in `touchesFiles` | Task lists the same file multiple times | Deduplicate array entries |
+| Un-sequenced concurrent file overlap | Tasks A and B touch same file without dependency | 1. If Milestone(A) < Milestone(B), add Task A to Task B's `dependencies`.<br>2. If same milestone, order by numeric task ID: add earlier task to later task's `dependencies`.<br>3. Log sequencing fix: `Sequenced concurrent file conflict on <file> between <Task-A> and <Task-B>`. |
+| Unresolvable architectural conflict | Multiple tasks have mutual file locks that cannot be sequenced | Flag as unfixable requiring architectural file splitting |
+
+#### E. CODEOWNERS Verification
+
+**Scope:** Root `CODEOWNERS` or `.github/CODEOWNERS`.
+
+**Detection:**
+1. Locate the active `CODEOWNERS` file (checking root `CODEOWNERS` and `.github/CODEOWNERS`).
+2. Parse every rule in `CODEOWNERS` (ignoring lines starting with `#` and blank lines).
+3. For each rule: `<pattern> @<gitUser1> [@<gitUser2>...]`
+   - **Git Username Check:** Verify each `@<gitUser>` exists in `.ai-team/team.json` under member `gitUser` or `githubUsername`.
+   - **Directory & File Existence Check:** For file/directory patterns (e.g. `/src/api/`, `/prisma/`, `/src/lib/db.ts`):
+     - Strip any leading `/` or `\` so paths resolve relative to the project workspace root on Windows (`Join-Path $projectRoot $cleanPattern`) rather than the drive root.
+     - Skip the catch-all global wildcard `*`.
+     - Check if the target directory or file exists on disk.
+     - If not on disk, check if it is declared in `touchesFiles` (or `allowedPaths`) of a task in `.ai-team/tasks/*.json`.
+     - Flag obsolete directories, typos, or phantom paths.
+
+**Common Fixes:**
+
+| Issue | Detection | Fix |
+|---|---|---|
+| Missing `@` prefix on handle | Handle written as `dvance-backend` | Prepend `@`: `@dvance-backend` |
+| Typo in Git handle | Handle not in `team.json`, but Levenshtein distance ≤ 2 from a valid member | Replace with closest matching member `gitUser` (e.g. `@dvance-bckend` → `@dvance-backend`) |
+| Unregistered Git handle | Handle not in `team.json` and no close match | Replace with the team lead handle (`lead` from `team.json`) |
+| Typo in directory path | Directory doesn't exist, but close match exists on disk (e.g. `/src/componets/`) | Update pattern to matching disk directory: `/src/components/` |
+| Phantom directory pattern | Path does not exist on disk and is not in any task's `touchesFiles` | Comment out the rule: `# [Self-Healing] Path not found: <pattern>` |
+
+---
+
 ## Reporting
 
 After running all auto-fix procedures, generate a structured report.
@@ -317,6 +500,7 @@ After running all auto-fix procedures, generate a structured report.
 🔄 Cross-references checked: <N> | fixed: <N> (<details>)
 ⚙️ Config schemas validated: <N> | fixed: <N> (<details>)
 📐 Encoding/line endings checked: <N> | fixed: <N> (<details>)
+👥 Team Mode integrity checked: <N> | fixed: <N> (<details>)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Total files scanned: <N>
@@ -332,6 +516,10 @@ When fixes are applied, include specifics:
 📄 JSON files checked: 5 | fixed: 2
    └─ hooks.json: removed trailing comma on line 14
    └─ mcp_config.json: wrapped args string in array for "firebase" server
+👥 Team Mode integrity checked: 8 | fixed: 3
+   └─ .ai-team/tasks/task-003.json: injected task-002 dependency to resolve concurrent file conflict on src/lib/auth.ts
+   └─ .ai-team/tasks/task-004.json: normalized branch to feature/task-004-dashboard-shell
+   └─ CODEOWNERS: corrected @dvance-bckend to @dvance-backend
 ```
 
 ### Unfixable Issues
@@ -340,6 +528,7 @@ When an issue cannot be auto-fixed, clearly explain what's wrong and what the us
 ```
 ⚠️ Unfixable issues (1):
    └─ hooks.json: hook "post-build" is missing a "handler.command" field — please specify what command should run when this hook triggers
+   └─ .ai-team/tasks: circular dependency detected along cycle path task-002 -> task-005 -> task-002 — please adjust task sequencing
 ```
 
 ---
@@ -373,3 +562,4 @@ Self-healing must be idempotent: running it twice on the same files should produ
 3. **Always back up before modifying** — Before writing any fix, ensure the original content could be recovered (log the original value in the report)
 4. **Stop on cascading failures** — If fixing one file causes another file's validation to fail, stop and report the conflict
 5. **Respect `.gitignore`** — Do not scan or modify files that would be gitignored (e.g., `node_modules/`, `dist/`)
+6. **Preserve task identity and assignment** — Never delete tasks or reassign them to different owners during self-healing; only repair schemas, branch strings, path formatting, and dependency sequencing

@@ -1,6 +1,6 @@
 ---
 name: game-dojo-bootstrap
-description: "Automated project bootstrapping system. Activate this skill when a user provides a project description or idea and wants to scaffold a fully-configured Antigravity workspace. Guides the agent through the Game Dojo 2.0 8-phase process: Interview → Analysis → Swarm Generation → Integration → Validation → Project Skeleton → Ratchet Loop → Memory & Handoff."
+description: "Automated project bootstrapping system with Solo and Team modes. Activate this skill when a user provides a project description or idea and wants to scaffold a fully-configured Antigravity workspace. Guides the agent through the Game Dojo 2.0 8-phase process: Interview (Solo vs Team) → Analysis & Contract-First Architecture → Swarm Generation → Integration → Validation → Project Skeleton & Task Branching → Ratchet Loop → Memory & Handoff."
 ---
 
 # Game Dojo — Project Bootstrap Skill
@@ -8,18 +8,22 @@ description: "Automated project bootstrapping system. Activate this skill when a
 You are the **Game Dojo Bootstrapper**, an expert system that transforms a user's raw project idea into a fully-configured, AI-ready Antigravity workspace. Follow the 8-phase process below. Never skip phases, but you may compress phases if the user provides enough upfront detail.
 
 > **Reference Files** (read these before starting):
-> - [Question Bank](references/question-bank.md) — Interview questions organized by category
+> - [Question Bank](references/question-bank.md) — Interview questions organized by category (including Category 0: Project Mode & Team Intake)
 > - [Tech Stacks](references/tech-stacks.md) — Common stack configurations with pros/cons
 > - [Templates](references/templates.md) — Base templates for every generated file
+> - [Team Templates](references/team-templates.md) — Schemas and templates for `.ai-team/` files (`team.json`, `plan.json`, `tasks/*.json`, `CODEOWNERS`)
 > - [Ecosystem Map](references/ecosystem-map.md) — Technology-to-plugin/MCP mappings
 > - [Local Skills Library](references/local-skills-library.md) — 1,320+ pre-built skills at `C:\Users\Vinod krishna\antigravity_skills`
+>
+> **Companion Skills**:
+> - [Team Orchestrator](../team-orchestrator/SKILL.md) — Coordinates team execution, task assignment, PR reviews, and contract adherence for Team Mode projects.
 
 ---
 
 ## Phase 1 — INTAKE & INTERVIEW
 
 ### Goal
-Gather enough context to make every downstream decision confidently. Even a single sentence like *"I want to build a recipe app"* is a valid starting point.
+Gather enough context to make every downstream decision confidently. Even a single sentence like *"I want to build a recipe app with my 3-person team"* is a valid starting point.
 
 ### Steps
 
@@ -29,6 +33,7 @@ Gather enough context to make every downstream decision confidently. Even a sing
 
 2. **Parse the description to extract known facts.**
    Identify and record what you already know about:
+   - **Project Mode**: Solo (default) or Team project (team size, members, roles, collaboration model)
    - Project type (web app, mobile, CLI, API, game, etc.)
    - Likely tech stack (languages, frameworks mentioned or implied)
    - Scale (personal project, startup MVP, enterprise)
@@ -36,22 +41,33 @@ Gather enough context to make every downstream decision confidently. Even a sing
    - Core domain (e-commerce, social, productivity, dev-tool, etc.)
 
 3. **Load the question bank from [references/question-bank.md](references/question-bank.md).**
-   - Review all 8 categories and their questions.
+   - Review all 9 categories (Category 0: Project Mode & Team Intake, plus Categories 1–8).
+   - Immediately evaluate **Project Mode: Solo vs Team** (Q0.1).
+     - **Solo Mode (Default)**: Standard single-developer bootstrap flow. Proceed directly to Category 1 (Project Identity) and subsequent technical categories. Skip Q0.2–Q0.4.
+     - **Team Mode**: Activate team orchestration workflow. Gather Q0.2 (team size), Q0.3 (team member details: name, git username/email, primary & secondary roles, experience level, weekly availability), and Q0.4 (branching and review preferences).
    - Cross-reference with what you already know from step 2.
    - Eliminate questions whose answers are already obvious from the description.
 
 4. **Select and present relevant questions in batches.**
-   - Group questions into batches of 3–4, organized by category.
+   - Group questions into logical batches of 3–4, organized by category.
+   - **Evaluate Project Mode First**:
+     - If Project Mode is unspecified, include Q0.1 in Batch 1 alongside Project Identity:
+       ```
+       **Project Intake & Identity**
+       1. Project Mode: Solo or Team? (default: "Solo" — if Team, we will configure team roster, roles, and review rules)
+       2. What is the project name? (default: derived from description)
+       3. Who are your target users? (default: "general consumers")
+       4. What is the #1 core problem this solves? (default: inferred from description)
+       ```
+     - If the user selects or indicates **Team Mode**, present the Team Intake batch:
+       ```
+       **Team Configuration (Team Mode)**
+       1. How many members are on the team? (default: "3")
+       2. Team member details (names, git handles/emails, roles, availability)? (default: "Lead @lead (40h/wk), Frontend @frontend (40h/wk), Backend @backend (40h/wk)")
+       3. Branching & review preferences? (default: "Protected main, PR with 1 approval, feature/<task-id>-<slug> branches")
+       ```
    - For every question, provide a **smart default** in parentheses based on the project type.
-   - Format each batch clearly:
-     ```
-     **Project Identity**
-     1. What's the project name? (default: "my-app")
-     2. Who are your target users? (default: "general consumers")
-     3. What's the #1 problem this solves? (default: inferred from description)
-
-     You can answer with just the numbers, or type "defaults" to accept all defaults.
-     ```
+   - Allow the user to answer with just the numbers, or type "defaults" to accept all defaults.
 
 5. **Allow the user to skip questions.**
    - If the user says "defaults", "skip", or similar, accept all smart defaults for that batch.
@@ -60,12 +76,14 @@ Gather enough context to make every downstream decision confidently. Even a sing
 
 6. **Track your mental model.**
    Maintain an internal record of:
+   - 👥 **Project Mode**: Solo vs Team (if Team: member roster, role taxonomy, weekly availability, git handles)
    - ✅ Answered questions (with the user's answer)
    - 🔄 Defaulted questions (with the default used)
    - ❓ Unanswered questions that may need revisiting
 
 7. **Determine when you have enough information.**
    You need at minimum:
+   - **Project Mode** (Solo vs Team; if Team, verified roster of members, roles, and weekly capacity)
    - Project name
    - Project type / platform
    - Primary tech stack direction
@@ -80,15 +98,15 @@ Gather enough context to make every downstream decision confidently. Even a sing
 ## Phase 2 — ANALYSIS & ARCHITECTURE
 
 ### Goal
-Synthesize everything gathered into concrete technical decisions and a project blueprint.
+Synthesize everything gathered into concrete technical decisions, contract-first interface boundaries, and an actionable, workload-balanced project blueprint.
 
 ### Steps
 
 1. **Synthesize all gathered information into a Project Brief.**
    Write a concise (10–15 line) summary covering:
-   - What the project is
-   - Who it's for
-   - What it does (core features)
+   - What the project is and target users
+   - Project Mode (Solo vs Team; roster count and roles)
+   - Core MVP features
    - How it will be built (stack overview)
    - Where it will be deployed
 
@@ -108,42 +126,81 @@ Synthesize everything gathered into concrete technical decisions and a project b
      | Deployment  | Vercel         | Native Next.js support, easy CI/CD     |
      ```
 
-3. **Map out the component architecture.**
+3. **Establish Contract-First Architecture (Mandatory for Team Mode, Recommended for Solo).**
+   - Decouple frontend and backend parallel development by establishing immutable boundary contracts *before* feature development begins.
+   - **Contract Specifications**:
+     - `docs/API_SPEC.md` (or `docs/contracts/api-spec.json`) — Precise endpoints, HTTP verbs, paths, request/response JSON schemas (or Zod/TypeScript types), query parameters, error responses, and mock response fixtures.
+     - `docs/DATABASE_SCHEMA.md` / `docs/DATA_MODEL.md` (or `docs/contracts/data-model.prisma`) — Entities, attributes, types, relations, primary/foreign keys, uniqueness constraints, and migration plan.
+   - **Contract Freeze Checkpoint**:
+     - Flag specifications as `Status: FROZEN (v1.0-CONTRACT)` in Phase 3.
+     - Frontend developers and agents build UI components against mock fixtures derived from the frozen spec; backend developers and agents implement endpoints against the exact same schema. Zero waiting, zero integration surprises.
+     - **Mutation Policy**: Frozen contracts cannot be modified without team consensus, a version bump (`v1.1-CONTRACT`), and a corresponding schema migration task.
+
+4. **Automated Task Breakdown & Workload Balancing (Team Mode).**
+   When Team Mode is active, automatically decompose requirements into discrete, balanced work units conforming to [references/team-templates.md](references/team-templates.md):
+   - **Atomic Task Decomposition**:
+     - Break features and foundations into tasks sized between 4–16 estimated hours.
+     - Each task specification defines: `id` (e.g., `TASK-001`), `title`, `slug`, `description`, `type`, `priority`, `status: "todo"`, `assignee` (`id`, `name`, `type`), `reviewers`, `dependencies`, `allowedPaths` / `touchesFiles` (explicit file boundaries), `contractRefs` / `contractDependencies` (frozen contract anchors), `acceptanceCriteria`, `verificationCommands`, and `schedule` (`estimatedHours`).
+   - **Directed Acyclic Graph (DAG) Construction**:
+     - Group tasks into dependency-ordered execution waves:
+       - **Wave 1 (Foundation - Unblocked)**: Project skeleton, database baseline/migrations, contract mocks, auth skeleton, UI shell.
+       - **Wave 2 (Core Features - Dependent on Wave 1)**: Business logic, API routes, database CRUD, connected UI screens.
+       - **Wave 3 (Integration & Hardening - Dependent on Wave 2)**: End-to-end flows, automated testing, CI/CD pipelines, production deployment.
+   - **Workload Capacity Balancing**:
+     - Map tasks to team members based on primary and secondary roles (`lead`, `frontend`, `backend`, `fullstack`, `devops`, `qa`).
+     - Respect each member's weekly availability limits (e.g. Alice: 40h/wk, Bob: 20h/wk).
+     - Distribute total estimated hours evenly across waves to prevent bottlenecks and ensure no member exceeds 100% capacity.
+   - **Git Task Branch Mapping**:
+     - Assign each task an isolated branch name conforming to `feature/<task-id>-<slug>` (e.g. `feature/TASK-001-db-baseline`, `feature/TASK-002-auth-api`), matching `taskBranchPrefix: "feature/"` in `team-templates.md` and companion skill [Team Orchestrator](../team-orchestrator/SKILL.md).
+
+5. **Map out the component architecture.**
    Create a high-level component/module breakdown:
    - List every major module/feature area
    - Define the relationships between modules
    - Identify shared utilities and services
    - Note any third-party service integrations
 
-4. **Identify risks and mitigations.**
+6. **Identify risks and mitigations.**
    For each identified risk, propose a mitigation:
    ```
    | Risk                        | Impact | Mitigation                          |
    |-----------------------------|--------|-------------------------------------|
    | Complex real-time sync      | High   | Use WebSocket abstraction (Socket.io)|
    | Payment integration issues  | Medium | Start with Stripe test mode early   |
+   | Team API integration drift  | High   | Freeze API_SPEC.md & enforce mocks  |
    ```
 
-5. **Create the recommended folder structure.**
-   Generate the complete directory tree for the project. Example:
+7. **Create the recommended folder structure.**
+   Generate the complete directory tree. Include `.ai-team/` and `.github/CODEOWNERS` when Team Mode is active:
    ```
    project-root/
    ├── .agents/
    │   ├── skills/
    │   ├── hooks.json
    │   └── mcp_config.json
+   ├── .ai-team/                 # [Team Mode] Team collaboration & task orchestration
+   │   ├── team.json             # Member roster, roles, capacity, skill matrix
+   │   ├── plan.json             # Milestone roadmap, DAG, execution waves
+   │   └── tasks/                # Granular task specifications
+   │       ├── TASK-001.json
+   │       ├── TASK-002.json
+   │       └── ...
+   ├── .github/
+   │   └── CODEOWNERS            # [Team Mode] Automated PR review routing
    ├── src/
-   │   ├── app/              # Next.js App Router pages
-   │   ├── components/       # Reusable UI components
-   │   ├── lib/              # Utilities and helpers
-   │   ├── services/         # Business logic layer
-   │   └── types/            # TypeScript type definitions
+   │   ├── app/                  # Next.js App Router pages
+   │   ├── components/           # Reusable UI components
+   │   ├── lib/                  # Utilities and helpers
+   │   ├── services/             # Business logic layer
+   │   └── types/                # TypeScript type definitions
    ├── prisma/
    │   └── schema.prisma
    ├── public/
    ├── docs/
    │   ├── ARCHITECTURE.md
-   │   ├── API_SPEC.md
+   │   ├── API_SPEC.md           # [FROZEN CONTRACT] API schemas & mock fixtures
+   │   ├── DATABASE_SCHEMA.md    # [FROZEN CONTRACT] Entity schemas & relations
+   │   ├── contracts/            # [Optional] Shared OpenAPI/Prisma contracts
    │   └── DEPLOYMENT.md
    ├── tests/
    ├── GEMINI.md
@@ -153,20 +210,28 @@ Synthesize everything gathered into concrete technical decisions and a project b
    └── package.json
    ```
 
-6. **Present the analysis to the user for approval.**
-   Show them the Project Brief, tech stack table, and folder structure.
-   Ask: *"Does this look right? I can adjust any part before I start generating files."*
+8. **Present the analysis to the user for approval.**
+   Show them the Project Brief, tech stack table, folder structure, contract freeze plan, and (in Team Mode) the workload balancing matrix:
+   ```
+   **Team Workload Allocation (Wave 1 Preview)**
+   | Member | Role | Assigned Tasks | Total Hours | Weekly Capacity | Utilization |
+   |--------|------|----------------|-------------|-----------------|-------------|
+   | Alice  | Lead/Fullstack | TASK-001 (DB Baseline), TASK-004 (Auth Core) | 20h | 40h | 50% |
+   | Bob    | Frontend | TASK-002 (UI Shell), TASK-005 (Design Tokens) | 18h | 40h | 45% |
+   | Charlie| Backend  | TASK-003 (Mock API Server), TASK-006 (Health Check)| 16h | 40h | 40% |
+   ```
+   Ask: *"Does this plan and workload balance look right? I can adjust roles, tasks, or contracts before generating files."*
 
 ---
 
-## Phase 3 — DOCUMENT GENERATION
+## Phase 3 — SWARM & DOCUMENT GENERATION
 
 ### Goal
 Generate every configuration and documentation file the project needs. Every file must be complete, production-quality, and immediately usable by an AI agent or human developer.
 
 ### Generation Order
 
-Generate files in this exact sequence. Reference [references/templates.md](references/templates.md) for base templates, filling in all `{{PLACEHOLDER}}` variables with project-specific values.
+Generate files in this exact sequence. Reference [references/templates.md](references/templates.md) for base templates, and [references/team-templates.md](references/team-templates.md) for `.ai-team/` schemas and templates, filling in all `{{PLACEHOLDER}}` variables with project-specific values.
 
 #### 1. GEMINI.md — The Project Brain
 The most important file. This tells Gemini (or any AI agent) how to behave in this project.
@@ -260,6 +325,7 @@ Detailed architecture document with:
 - Error response format
 - Rate limiting details
 - Versioning strategy
+- **Team Mode status**: Mark as `Status: FROZEN (v1.0-CONTRACT)`. Include mock request/response JSON fixtures for every endpoint so frontend and backend work streams can execute concurrently without blocking.
 
 #### 10. docs/DATABASE_SCHEMA.md — Database Schema (if applicable)
 - Entity-Relationship diagram (Mermaid)
@@ -267,6 +333,7 @@ Detailed architecture document with:
 - Index strategy
 - Migration approach
 - Seed data plan
+- **Team Mode status**: Mark as `Status: FROZEN (v1.0-CONTRACT)`. Define all models, field types, and relations as the single source of truth before feature coding begins.
 
 #### 11. docs/DEPLOYMENT.md — Deployment Guide
 - Environment setup
@@ -275,6 +342,27 @@ Detailed architecture document with:
 - Environment variables reference
 - Rollback procedures
 - Monitoring and alerting setup
+
+#### 12. .ai-team/ Configuration Files (Team Mode Only)
+When Team Mode is active, generate the team orchestration metadata in `.ai-team/`. Reference [references/team-templates.md](references/team-templates.md) for exact JSON schemas:
+
+- **`.ai-team/team.json` — Team Roster & Allocation**:
+  - Captures project metadata, member IDs, full names, emails, git handles, primary & secondary roles, experience level, weekly capacity (hours), permissions, and assigned domains.
+  - Enforces role clarity and prevents over-allocation.
+- **`.ai-team/plan.json` — Milestone Roadmap & Dependency DAG**:
+  - Defines the milestone schedule, contract freeze gates, execution waves (Wave 1: Foundation, Wave 2: Core Features, Wave 3: Integration), shared resource locks, and the complete acyclic dependency graph between tasks.
+- **`.ai-team/tasks/*.json` — Granular Task Specifications**:
+  - Individual task files (e.g. `TASK-001.json`, `TASK-002.json`) in `.ai-team/tasks/`.
+  - Every task follows the schema in [references/team-templates.md](references/team-templates.md): `id` (e.g., `TASK-001`), `title`, `slug`, `description`, `type`, `priority`, `status: "todo"`, `assignee` (`id`, `name`, `type`), `reviewers`, `dependencies`, `allowedPaths` / `touchesFiles` (explicit file boundaries), `contractRefs` / `contractDependencies` (e.g. `docs/API_SPEC.md#auth-login`), `acceptanceCriteria`, `verificationCommands`, and `schedule` (`estimatedHours`).
+  - Synchronizes with companion skill [Team Orchestrator](../team-orchestrator/SKILL.md) for automated task transitions, branch checkouts (`feature/<task-id>-<slug>`), and PR validation.
+
+#### 13. .github/CODEOWNERS — Automated Review Routing (Team Mode Only)
+Configures GitHub/GitLab automated code ownership reviews based on team member roles (placed at `.github/CODEOWNERS` with optional root `CODEOWNERS` alias):
+- Maps directory patterns to developer git handles:
+  - Frontend paths (`src/components/`, `src/app/`, `DESIGN_SYSTEM.md`) → Frontend Specialist
+  - Backend/API paths (`src/services/`, `src/app/api/`, `prisma/`, `docs/API_SPEC.md`) → Backend Specialist
+  - DevOps/Infra paths (`.github/`, `scripts/`, `Dockerfile`, root config) → Lead / DevOps
+- Enforces multi-developer review discipline before merging into protected `main`.
 
 ### Quality Rules for Every Generated File
 - **No placeholders** — every file must have real, usable content
@@ -354,10 +442,15 @@ Verify everything is complete and hand the project off to the user.
    ✅ .agents/hooks.json — Lifecycle automation
    ✅ .agents/mcp_config.json — Tool integrations
    ✅ docs/ARCHITECTURE.md — System architecture
-   ✅ docs/API_SPEC.md — API specification
-   ✅ docs/DATABASE_SCHEMA.md — Database schema
+   ✅ docs/API_SPEC.md — API specification (FROZEN in Team Mode)
+   ✅ docs/DATABASE_SCHEMA.md — Database schema (FROZEN in Team Mode)
    ✅ docs/DEPLOYMENT.md — Deployment guide
    ✅ package.json — Dependencies and scripts
+   [When Team Mode is active]
+   ✅ .ai-team/team.json — Team roster, roles, and capacity
+   ✅ .ai-team/plan.json — Milestone schedule & dependency DAG
+   ✅ .ai-team/tasks/*.json — Granular task specifications
+   ✅ .github/CODEOWNERS — Automated reviewer routing
    ```
 
 2. **Run the self-check.**
@@ -367,6 +460,13 @@ Verify everything is complete and hand the project off to the user.
    - Verify each skill has actionable step-by-step instructions
    - Verify docs reference each other correctly
    - Verify all configuration files are valid JSON/YAML
+   - **Team Mode checks**:
+     - Verify `.ai-team/` files validate against schemas in [references/team-templates.md](references/team-templates.md)
+     - Verify task dependencies in `.ai-team/plan.json` form a strictly Directed Acyclic Graph (DAG) with zero circular dependencies
+     - Verify each task in `.ai-team/tasks/*.json` defines explicit `allowedPaths` / `touchesFiles` boundary restrictions
+     - Verify total assigned task hours do not exceed any team member's weekly availability limit in `team.json`
+     - Verify git handles in `.github/CODEOWNERS` match registered members in `team.json`
+     - Verify `docs/API_SPEC.md` and `docs/DATABASE_SCHEMA.md` are marked `Status: FROZEN (v1.0-CONTRACT)`
 
 3. **Offer targeted regeneration.**
    Tell the user:
@@ -381,6 +481,7 @@ Verify everything is complete and hand the project off to the user.
    1. Run `npm install` (or equivalent) to install dependencies
    2. Run `npm run dev` to start the development server
    3. Start building! Try: "Implement the user authentication feature"
+      [In Team Mode]: Run "Switch to TASK-001" (git checkout feature/TASK-001-*) or let the team-orchestrator assign active tasks.
 
    The AI agent now has full context about your project.
    Happy building! 🚀
@@ -400,13 +501,26 @@ Generate actual runnable code — not just documentation. After this phase, `npm
 
 2. **Generate the package manifest** (`package.json`, `requirements.txt`, `pubspec.yaml`, etc.) with all dependencies.
 
-3. **Generate configuration files** (tsconfig, eslint, prettier, env.example, gitignore, Docker, CI/CD).
+3. **Generate configuration files** (`tsconfig.json`, eslint, prettier, `.env.example`, `.gitignore`, Docker, CI/CD).
 
 4. **Generate setup scripts** (`scripts/setup.ps1` for Windows, `scripts/setup.sh` for Unix).
+   - In Team Mode: Include environment verification (checks local `git config user.email` against `.ai-team/team.json`), dependency installation, and helper commands for checking out assigned task branches.
 
 5. **Generate starter code** — minimal but functional code for each core feature.
+   - In Team Mode: Starter code must strictly adhere to frozen API and database contracts in `docs/API_SPEC.md` and `docs/DATABASE_SCHEMA.md`.
 
-6. **Initialize git repository** if not already initialized.
+6. **Initialize git repository and pre-create task branches (Team Mode).**
+   - Initialize git repository if not already initialized (`git init`).
+   - Stage and commit the baseline project code, configs, `.ai-team/` directory, and `.github/CODEOWNERS` to the `main` branch.
+   - **Pre-Create Task Branches (When Team Mode is active)**:
+     - Read `.ai-team/plan.json` to identify all Wave 1 (unblocked foundation) tasks.
+     - Pre-create dedicated git branches for every Wave 1 task:
+       ```powershell
+       git branch feature/<task-id>-<slug>
+       ```
+       *(e.g., `git branch feature/TASK-001-db-baseline`, `git branch feature/TASK-002-api-mocks`, `git branch feature/TASK-003-ui-shell`)*
+     - Ensure the repository remains checked out on `main` with all task branches anchored at the initial baseline commit.
+     - Team members or parallel subagents can immediately switch to their assigned branch (`git checkout feature/<task-id>-<slug>`) and work simultaneously without merge conflicts.
 
 ---
 
@@ -441,7 +555,7 @@ Record this session for future improvement and present the final results.
 
 1. **Record to adaptive memory.**
    Activate `.agents/skills/adaptive-memory/SKILL.md` and log:
-   - Project spec, tech stack, quality scores, skills used, user edits
+   - Project spec, tech stack, Project Mode (Solo vs Team), team roster size, roles, quality scores, skills used, user edits
 
 2. **Generate the final report** showing:
    - All files created with quality scores

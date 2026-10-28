@@ -119,6 +119,25 @@ Example:
 - After every bootstrap, record the session in the decision log
 - When the user manually edits a generated file, note the change for template evolution
 
+### Team Boundary Protocol
+When running in a multi-developer or team-configured workspace (where `.ai-team/` exists):
+- **Identity & Context Discovery**:
+  - Always inspect the active git branch (`git branch --show-current` or `git rev-parse --abbrev-ref HEAD`) and git user identity (`git config user.name`, `git config user.email`).
+  - Extract the task identifier from the branch name pattern (e.g., `feature/<task-id>-*`, `feat/<task-id>-*`, `fix/<task-id>-*`, or `task/<task-id>-*`).
+  - Locate and read the corresponding task manifest at `.ai-team/tasks/<task-id>.json`.
+- **Strict Scope Bounding (`touchesFiles` / `allowedPaths`)**:
+  - Confine code edits, file creations, and deletions strictly to the paths enumerated in the task's `touchesFiles` (or `allowedPaths`) array.
+  - Do not modify, refactor, or format any files outside the assigned task boundaries without explicit human instruction.
+- **Cross-Member File Protection**:
+  - Inspect other task manifests in `.ai-team/tasks/*.json` having status `in_progress` or `in_review`.
+  - Forbid modifying files owned by or currently assigned to other team members' active tasks. If an uncommitted or cross-stream dependency is detected, halt modification and request explicit coordination.
+- **Contract-First Verification**:
+  - Before modifying any API routes, endpoint handlers, database schemas, or inter-service interfaces, inspect shared contracts located in `docs/contracts/` or `contracts/` (e.g., OpenAPI specs, Zod schemas, Prisma schemas).
+  - Agents must NOT introduce breaking changes or mutate shared contract boundaries unilaterally. Any contract modification requires an explicit contract update workflow and team review.
+- **Task Lifecycle Adherence**:
+  - When beginning work, verify the task transitions from `todo` to `in_progress`.
+  - Prior to PR submission, run deep verification and transition the task status to `in_review`.
+
 ---
 
 ## Quality Standards

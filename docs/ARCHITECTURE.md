@@ -373,3 +373,202 @@ flowchart LR
     style ML fill:#16213e,color:#e94560
     style NB fill:#0f3460,color:#fff
 ```
+
+---
+
+## Team Mode & Contract-First Architecture
+
+Team Mode extends Game Dojo from single-developer autonomy to multi-developer human+AI squads. In Team Mode, multiple engineers operate separate local Antigravity IDE instances, coordinating asynchronously over Git via locked interface contracts and explicit task manifests.
+
+### Coordination Topology
+
+```mermaid
+flowchart TD
+    subgraph RemoteRepo["Central Git Repository (Origin / GitHub)"]
+        MainBranch["main branch\n(Protected trunk)"]
+        Contracts["docs/contracts/\n- api-spec.json (OpenAPI)\n- data-model.prisma (Schemas)"]
+        TeamDir[".ai-team/\n- team.json (Roster & Roles)\n- tasks/*.json (Task Manifests)"]
+        Codeowners[".github/CODEOWNERS\n(Domain Mapping)"]
+    end
+
+    subgraph DevA["Developer A Workstation (Frontend Stream)"]
+        IDE_A["Antigravity IDE\n(Local AI Agent)"]
+        Branch_A["git branch:\nfeature/task-101-dashboard"]
+        Scope_A["Task Scope (touchesFiles):\nsrc/components/dashboard/*\nsrc/styles/dashboard.css"]
+    end
+
+    subgraph DevB["Developer B Workstation (Backend Stream)"]
+        IDE_B["Antigravity IDE\n(Local AI Agent)"]
+        Branch_B["git branch:\nfeature/task-201-metrics"]
+        Scope_B["Task Scope (touchesFiles):\nsrc/api/metrics/*\ntests/api/metrics.test.ts"]
+    end
+
+    MainBranch -->|git clone / pull trunk| IDE_A
+    MainBranch -->|git clone / pull trunk| IDE_B
+    TeamDir -->|Read task bounds & roster| IDE_A
+    TeamDir -->|Read task bounds & roster| IDE_B
+
+    IDE_A -->|Reads branch & task ID| Scope_A
+    Scope_A -->|Confines file edits| Branch_A
+    Branch_A -->|Pull Request + CI Verification| MainBranch
+
+    IDE_B -->|Reads branch & task ID| Scope_B
+    Scope_B -->|Confines file edits| Branch_B
+    Branch_B -->|Pull Request + CI Verification| MainBranch
+
+    Contracts -.->|Validates API interfaces| IDE_A
+    Contracts -.->|Validates API interfaces| IDE_B
+
+    style RemoteRepo fill:#161B22,stroke:#30363D,color:#E6EDF3
+    style DevA fill:#1A1F25,stroke:#58A6FF,color:#E6EDF3
+    style DevB fill:#1A1F25,stroke:#3FB950,color:#E6EDF3
+    style Contracts fill:#0D1117,stroke:#D29922,color:#E6EDF3
+    style TeamDir fill:#0D1117,stroke:#E05252,color:#E6EDF3
+    style MainBranch fill:#0D1117,stroke:#30363D,color:#E6EDF3
+```
+
+### Core Architectural Principles
+
+1. **Decentralized Workstations**:
+   - Every human developer runs an independent Antigravity IDE instance on their workstation.
+   - The local AI agent assumes the persona and boundaries corresponding to the developer's assigned role and active git branch.
+2. **Contract-First Decoupling**:
+   - Shared data models (`docs/contracts/data-model.*`) and API contracts (`docs/contracts/api-spec.*`) are established and frozen before parallel feature coding begins.
+   - Frontends mock against the contract; backends validate against the contract. This prevents inter-stream blocking and cross-team interface drift.
+3. **Declarative Task Boundaries (`touchesFiles` / `allowedPaths`)**:
+   - Each task defined in `.ai-team/tasks/<task-id>.json` contains a strict list of `touchesFiles` (and optional `allowedPaths`).
+   - The local AI agent inspects this list upon activation and refuses to modify files outside the declared boundaries without explicit human override.
+4. **Git as Synchronization Bus**:
+   - Coordination requires no centralized proprietary broker or persistent socket. The team synchronizes through standard Git branches (`feature/<task-id>-<slug>` or `feat/<task-id>-<slug>`), PR status checks, and task status files.
+5. **Ownership & Governance (`CODEOWNERS`)**:
+   - GitHub-native `.github/CODEOWNERS` (or root `CODEOWNERS`) enforces that code reviews are automatically routed to the designated domain owner before merging to `main`.
+
+### Data Schemas
+
+#### 1. Team Roster (`.ai-team/team.json`)
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "teamId": "team-recipehub-core",
+  "teamName": "RecipeHub Core Team",
+  "version": "1.0.0",
+  "lead": "vinod",
+  "members": [
+    {
+      "id": "vinod",
+      "name": "Vinod Krishna",
+      "email": "vinod@example.com",
+      "gitUser": "@vinod-dev",
+      "role": "frontend-lead",
+      "type": "human",
+      "availability": "active",
+      "maxConcurrentTasks": 2,
+      "assignedTaskIds": [
+        "task-101"
+      ],
+      "activeTasks": [
+        "task-101"
+      ],
+      "assignedDomains": [
+        "src/components",
+        "src/pages",
+        "src/styles"
+      ],
+      "capabilities": [
+        "react",
+        "typescript",
+        "tailwind",
+        "ui-testing"
+      ]
+    },
+    {
+      "id": "alex",
+      "name": "Alex Chen",
+      "email": "alex@example.com",
+      "gitUser": "@alex-backend",
+      "role": "backend-lead",
+      "type": "human",
+      "availability": "active",
+      "maxConcurrentTasks": 2,
+      "assignedTaskIds": [
+        "task-201"
+      ],
+      "activeTasks": [
+        "task-201"
+      ],
+      "assignedDomains": [
+        "src/api",
+        "src/services",
+        "prisma"
+      ],
+      "capabilities": [
+        "nodejs",
+        "express",
+        "prisma",
+        "postgresql",
+        "rest-api"
+      ]
+    }
+  ],
+  "policies": {
+    "requireContractConformance": true,
+    "enforceTouchesFiles": true,
+    "requireReviewForContractChanges": true
+  }
+}
+```
+
+#### 2. Task Manifest (`.ai-team/tasks/<task-id>.json`)
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "task-101",
+  "title": "Build Dashboard Recipe Feed Component",
+  "slug": "dashboard-feed",
+  "milestoneId": "m2-ui-features",
+  "description": "Render paginated recipe cards with like counter and filtering by tag",
+  "assignedTo": "vinod",
+  "assignee": "vinod",
+  "ownerGit": "@vinod-dev",
+  "status": "in_progress",
+  "stream": "frontend",
+  "priority": "high",
+  "branch": "feature/task-101-dashboard-feed",
+  "dependencies": [],
+  "blockedBy": [],
+  "touchesFiles": [
+    "src/components/dashboard/RecipeFeed.tsx",
+    "src/components/dashboard/RecipeCard.tsx",
+    "src/styles/dashboard.module.css",
+    "tests/components/RecipeFeed.test.tsx"
+  ],
+  "allowedPaths": [
+    "src/components/dashboard/**",
+    "src/styles/dashboard.module.css",
+    "tests/components/RecipeFeed.test.tsx"
+  ],
+  "contractDependencies": [
+    "docs/contracts/api-spec.json#/paths/~1recipes~1feed"
+  ],
+  "acceptanceCriteria": [
+    "RecipeFeed renders paginated list of cards consuming API contract",
+    "Tag filter chips dynamically update displayed recipe cards",
+    "All unit and component tests pass with 100% assertions satisfied"
+  ],
+  "verificationCommand": "npm test -- tests/components/RecipeFeed.test.tsx",
+  "verification": {
+    "testCommand": "npm test -- tests/components/RecipeFeed.test.tsx",
+    "lintCommand": "npm run lint -- src/components/dashboard"
+  }
+}
+```
+
+### Boundary & Safety Invariants
+
+| Invariant | Rule | Enforcement Mechanism |
+|---|---|---|
+| **Containment** | Agent edits must stay inside task `touchesFiles` / `allowedPaths` | Local Antigravity prompt & PreToolUse boundary check |
+| **Contract Immutability** | Shared contracts cannot change without multi-owner PR | Git branch protection and CODEOWNERS |
+| **Acyclicity** | Task dependency graph must remain a DAG (no deadlocks) | Game Dojo Phase 5 Validator / Self-Healing (`.agents/scripts/validate-dag.ps1`) |
+| **Clean Handoff** | Tasks move to `done` / `completed` only upon successful PR merge | CI automated task status update action |
+

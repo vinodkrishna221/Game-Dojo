@@ -1,6 +1,46 @@
 # Question Bank
 
-A comprehensive interview question bank for gathering project requirements. Each question includes context on why it matters, a smart default, and conditional follow-ups.
+A comprehensive interview question bank for gathering project requirements across 9 categories (Category 0 for Project Mode & Team Intake, followed by Categories 1–8 for functional, technical, and operational requirements). Each question includes context on why it matters, a smart default, and conditional follow-ups.
+
+---
+
+## 0. Project Mode & Team Intake
+
+### Q0.1 — Is this a Solo project or a Team project?
+- **Why it matters:** Determines whether Game Dojo bootstraps in Solo Mode or activates Team Mode (`.ai-team/` configuration, contract-first planning, role-based task allocation, CODEOWNERS, and parallel task branching).
+- **Smart default:** Solo (standard bootstrap).
+- **Follow-ups:**
+  - If Solo → proceed directly to Category 1 (Project Identity).
+  - If Team → triggers Q0.2 through Q0.4 to gather roster details, role assignments, and review preferences, activating the `team-orchestrator` workflow.
+
+### Q0.2 — How many members are on the team?
+- **Why it matters:** Dictates milestone slicing, task dependency graph granularity, and workload capacity balancing across parallel work streams.
+- **Smart default:** 3 members.
+- **Follow-ups:**
+  - Are all members developers, or are cross-functional roles included (e.g., designer, QA, tech lead)? (Shapes role taxonomy in `team.json`)
+  - Expected team growth during current milestone? (If yes → design modular domain boundaries)
+
+### Q0.3 — What are the team member details (name, git username/email, primary & secondary roles, experience level, weekly availability)?
+- **Why it matters:** Populates `.ai-team/team.json` with identity, git handles, skill sets, and weekly bandwidth to enable automated, balanced task assignment with zero overload.
+- **Smart default:** 3 developers:
+  - **Lead / Full-Stack** (`lead`): Name: "Lead Developer", Git: `@lead` (`lead@example.com`), Primary: `lead`, Secondary: `fullstack`, Senior, 40h/week
+  - **Frontend Specialist** (`frontend`): Name: "Frontend Developer", Git: `@frontend` (`frontend@example.com`), Primary: `frontend`, Secondary: `ui-ux`, Mid, 40h/week
+  - **Backend Specialist** (`backend`): Name: "Backend Developer", Git: `@backend` (`backend@example.com`), Primary: `backend`, Secondary: `devops`, Mid, 40h/week
+- **Follow-ups:**
+  - For each member, collect:
+    - **Name & Git username/email** (e.g., Jane Doe, `@janedoe` / `jane@example.com`)
+    - **Primary & Secondary roles** (e.g., `frontend` / `ui-ux`, `backend` / `devops`, `fullstack` / `qa`)
+    - **Experience level** (`junior`, `mid`, `senior`, `lead`)
+    - **Weekly availability** (Hours per week: 10h, 20h, 40h)
+  - Any domain specialties or ownership preferences? (e.g., auth, payment gateway, database migrations)
+
+### Q0.4 — What are your team branching and review preferences?
+- **Why it matters:** Configures git branching rules, GitHub Actions PR workflows, and automated `CODEOWNERS` reviewer routing.
+- **Smart default:** Protected `main` branch, PR required with at least 1 peer approval, feature branches named `feature/<task-id>-<slug>`.
+- **Follow-ups:**
+  - Require automated CI/CD checks to pass before merging? (Default: yes)
+  - Enforce `.github/CODEOWNERS` approvals by directory or subsystem? (Default: yes)
+  - Squash and merge vs merge commits? (Default: squash and merge for clean history)
 
 ---
 

@@ -15,6 +15,12 @@ Game Dojo follows a five-phase pipeline when bootstrapping a new project:
 4. **Generate** — Produce all project files: `GEMINI.md`, skills, plugins, hooks, MCP configs, docs, and templates.
 5. **Validate** — Verify every generated file is syntactically correct, complete, and immediately usable.
 
+### Team Mode Workflow Extension
+When Team Mode is enabled (multi-developer human+AI squads):
+- **Phase 3 (Analyze)**: Synthesizes a team decomposition plan, establishing independent work streams, module boundaries, and contract specifications.
+- **Phase 4 (Generate)**: Generates `.ai-team/team.json` (member roster & roles), `.ai-team/tasks/*.json` (isolated task definitions with strict `touchesFiles` / `allowedPaths` boundary declarations), `.github/CODEOWNERS`, and contract schemas (`docs/contracts/` or `contracts/`).
+- **Phase 5 (Validate)**: Validates task acyclicity (directed acyclic graph with no dependency cycles), verifies all tasks have valid assignees and bounded file lists, and asserts that code ownership rules cover all project components.
+
 ---
 
 ## Autonomy Levels
@@ -25,7 +31,15 @@ Game Dojo operates at different autonomy levels based on context:
 |---|---|---|---|
 | Level 3 | **Guided** (Default) | Answers questions, reviews output | Asks questions, generates files |
 | Level 4 | **Supervisory** | Reviews and approves | Does everything, presents for approval |
+| Level 4.5 | **Team Mode** | Collaborates in human+AI squad | Works within git branch boundary, respects assigned task `touchesFiles`, adheres to shared contracts |
 | Level 5 | **Full Autonomy** (`/goal` mode) | Reviews results hours later | Interviews itself, generates, builds, tests, iterates overnight |
+
+### Team Mode (Multi-Developer Squad)
+When a project involves multiple human developers or independent AI-assisted workstations:
+- **Contract-First Scaffolding**: Shared data models and API schemas are locked before parallel work begins.
+- **Strict File Boundaries**: Agents check active git branch and task manifests (`.ai-team/tasks/*.json`), refusing to edit files outside the task's `touchesFiles` (or `allowedPaths`).
+- **Decentralized Coordination**: Each developer runs an individual Antigravity IDE instance; coordination occurs asynchronously via Git commits, PRs, and `.ai-team/` task states (`todo` -> `in_progress` -> `in_review` -> `done` / `completed`).
+- **Zero-Collision Concurrency**: Branch isolation (`feature/<task-id>-<slug>` or `feat/<task-id>-<slug>`) and domain ownership (`.github/CODEOWNERS` or `CODEOWNERS`) eliminate merge collisions.
 
 ### The Ratchet Loop
 After initial generation, Game Dojo enters an autonomous improvement cycle:
@@ -118,6 +132,8 @@ All generated files **must** adhere to the following:
 | Local Skills Library | `C:\Users\Vinod krishna\antigravity_skills` | 1,320+ pre-built skills for direct import/reference |
 | Memory Store | `C:\Users\Vinod krishna\antigravity_skills\.game-dojo-memory\` | Cross-project learning and preferences |
 | Ratchet Log | `ratchet-log.tsv` (in generated project root) | Improvement loop audit trail |
+| Team Coordination | `.ai-team/` | Team roster (`team.json`), task definitions (`tasks/*.json`), and policies |
+| Team Operations Guide | `docs/TEAM_OPERATIONS.md` | Multi-developer human+AI operational procedures and task lifecycle |
 
 ---
 
@@ -137,3 +153,6 @@ Before considering any generation task complete, verify:
 - [ ] Ratchet loop ran at least 3 iterations
 - [ ] Setup scripts (`scripts/setup.ps1`) are generated and functional
 - [ ] Git repository is initialized with meaningful commit history
+- [ ] Team Mode: `.github/CODEOWNERS` (or root `CODEOWNERS`) exists and maps domain directories to team members
+- [ ] Team Mode: No circular task dependencies exist in `.ai-team/tasks/*.json` (DAG acyclicity verified)
+- [ ] Team Mode: All tasks have valid assignees and explicit `touchesFiles` / `allowedPaths` boundary manifests

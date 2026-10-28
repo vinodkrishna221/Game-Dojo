@@ -18,6 +18,7 @@ Activate this skill when:
 - The user explicitly asks for runnable code scaffolding
 - The bootstrap workflow reaches the "Generate project skeleton" phase
 - A project needs executable infrastructure beyond markdown files
+- Team Mode is active and requires `.ai-team/` orchestration scaffolding, task branch initialization, and CODEOWNERS generation
 
 ---
 
@@ -28,8 +29,9 @@ Before generating skeleton files, the following must already exist:
 - `docs/REQUIREMENTS.md` — Lists features and capabilities the skeleton should support
 - `docs/DESIGN_SYSTEM.md` — Defines styling choices (needed for Tailwind config, theme files, etc.)
 - `GEMINI.md` — Defines coding standards the skeleton must follow
+- For Team Mode: Roster definition, role assignments, and initial milestone/task breakdown
 
-Read all four documents before generating any files.
+Read all prerequisites before generating any files.
 
 ---
 
@@ -781,7 +783,41 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "  ⚠️  Database setup skipped (check DATABASE_URL in .env)" -ForegroundColor Yellow
 }
 
-# 5. Done
+# 5. Team Mode task branch initialization (if applicable)
+if (Test-Path ".ai-team") {
+    Write-Host ""
+    Write-Host "👥 Initializing Team Mode task branches..." -ForegroundColor Yellow
+    try {
+        $taskBranches = @()
+        if (Test-Path ".ai-team/plan.json") {
+            $plan = Get-Content ".ai-team/plan.json" -Raw | ConvertFrom-Json
+            if ($plan.taskIndex) {
+                $taskBranches = $plan.taskIndex | ForEach-Object { $_.branch }
+            }
+        }
+        if ($taskBranches.Count -eq 0 -and (Test-Path ".ai-team/tasks")) {
+            $taskBranches = Get-ChildItem -Path ".ai-team/tasks" -Filter "*.json" | ForEach-Object {
+                $t = Get-Content $_.FullName -Raw | ConvertFrom-Json
+                $t.branch
+            }
+        }
+        foreach ($branchName in $taskBranches) {
+            if ($branchName) {
+                $existing = git branch --list $branchName
+                if (-not $existing) {
+                    git branch $branchName 2>$null
+                    Write-Host "  ✅ Created branch $branchName" -ForegroundColor Green
+                } else {
+                    Write-Host "  ℹ️  Branch $branchName exists" -ForegroundColor Cyan
+                }
+            }
+        }
+    } catch {
+        Write-Host "  ⚠️  Could not initialize all task branches: $_" -ForegroundColor Yellow
+    }
+}
+
+# 6. Done
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host "🎉 Setup complete!" -ForegroundColor Green
@@ -859,7 +895,36 @@ if npm run 2>/dev/null | grep -q "db:migrate"; then
     fi
 fi
 
-# 5. Done
+# 5. Team Mode task branch initialization (if applicable)
+if [ -d ".ai-team" ]; then
+    echo ""
+    echo "👥 Initializing Team Mode task branches..."
+    if command -v jq >/dev/null 2>&1; then
+        branches=()
+        if [ -f ".ai-team/plan.json" ]; then
+            for b in $(jq -r '.taskIndex[]?.branch // empty' .ai-team/plan.json 2>/dev/null); do
+                [ -n "$b" ] && branches+=("$b")
+            done
+        fi
+        if [ ${#branches[@]} -eq 0 ] && [ -d ".ai-team/tasks" ]; then
+            for tf in .ai-team/tasks/*.json; do
+                if [ -f "$tf" ]; then
+                    b=$(jq -r '.branch // empty' "$tf" 2>/dev/null)
+                    [ -n "$b" ] && branches+=("$b")
+                fi
+            done
+        fi
+        for branch in "${branches[@]}"; do
+            if [ -n "$branch" ] && ! git show-ref --verify --quiet "refs/heads/$branch"; then
+                git branch "$branch" 2>/dev/null && echo "  ✅ Created branch $branch" || true
+            fi
+        done
+    else
+        echo "  ℹ️  jq not installed; skipping automatic task branch creation"
+    fi
+fi
+
+# 6. Done
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "🎉 Setup complete!"
@@ -868,6 +933,416 @@ echo "  Start developing:  npm run dev"
 echo "  Run tests:         npm test"
 echo "  Check code:        npm run lint"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+```
+
+---
+
+## Team Mode Infrastructure (.ai-team/)
+
+When **Team Mode** is active (e.g. collaborative team projects, multi-agent development swarms, or team-ready prompt bootstrapping), `project-skeleton` scaffolds a dedicated `.ai-team/` folder structure and root `CODEOWNERS` file.
+
+This establishes explicit boundaries, transparent task ownership, non-conflicting branch spaces, and real-time availability tracking across human and AI team members.
+
+### Directory Layout
+
+```
+<project-root>/
+├── .ai-team/
+│   ├── team.json               # Roster, roles, capabilities, and availability
+│   ├── plan.json               # Milestones, delivery phases, and task index
+│   └── tasks/                  # Granular task specifications (one file per task)
+│       ├── task-001.json
+│       ├── task-002.json
+│       ├── task-003.json
+│       ├── task-004.json
+│       └── task-005.json
+└── CODEOWNERS                  # Git code ownership mapping file paths to git handles (or .github/CODEOWNERS)
+```
+
+---
+
+### 1. `.ai-team/team.json` — Team Roster & Availability
+
+Defines all team members (human engineers and autonomous AI specialist agents), their functional roles, Git usernames, skill capabilities, current workload limits, and real-time availability status.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "teamId": "team-game-dojo-core",
+  "teamName": "Core Engineering Team",
+  "updatedAt": "2026-10-28T12:00:00Z",
+  "lead": "architect-lead",
+  "members": [
+    {
+      "id": "architect-lead",
+      "name": "Alex Mercer",
+      "role": "Architect & System Lead",
+      "gitUser": "@amercer-lead",
+      "email": "alex.mercer@example.com",
+      "type": "human",
+      "availability": "active",
+      "maxConcurrentTasks": 2,
+      "assignedTaskIds": [
+        "task-001"
+      ],
+      "capabilities": [
+        "architecture",
+        "code-review",
+        "security",
+        "schema-design"
+      ]
+    },
+    {
+      "id": "backend-specialist",
+      "name": "Devon Vance",
+      "role": "Backend Engineer",
+      "gitUser": "@dvance-backend",
+      "email": "devon.vance@example.com",
+      "type": "ai-agent",
+      "availability": "active",
+      "maxConcurrentTasks": 3,
+      "assignedTaskIds": [
+        "task-002",
+        "task-003"
+      ],
+      "capabilities": [
+        "typescript",
+        "nodejs",
+        "prisma",
+        "rest-api",
+        "postgresql"
+      ]
+    },
+    {
+      "id": "frontend-specialist",
+      "name": "Elena Rostova",
+      "role": "Frontend Engineer",
+      "gitUser": "@erostova-frontend",
+      "email": "elena.rostova@example.com",
+      "type": "ai-agent",
+      "availability": "idle",
+      "maxConcurrentTasks": 3,
+      "assignedTaskIds": [
+        "task-004"
+      ],
+      "capabilities": [
+        "react",
+        "nextjs",
+        "tailwind",
+        "accessibility",
+        "state-management"
+      ]
+    },
+    {
+      "id": "qa-validator",
+      "name": "Kiran Patel",
+      "role": "QA & Test Automation Specialist",
+      "gitUser": "@kpatel-qa",
+      "email": "kiran.patel@example.com",
+      "type": "ai-agent",
+      "availability": "idle",
+      "maxConcurrentTasks": 2,
+      "assignedTaskIds": [
+        "task-005"
+      ],
+      "capabilities": [
+        "vitest",
+        "jest",
+        "playwright",
+        "integration-testing"
+      ]
+    }
+  ]
+}
+```
+
+**Rules for `team.json`:**
+- Every member `id` must be unique and in `lowercase-kebab-case`.
+- `gitUser` (or `githubUsername`) must include the leading `@` and represent a valid git handle.
+- `type` must be either `"human"` or `"ai-agent"`.
+- `availability` must be one of `"active"`, `"idle"`, `"busy"`, `"offline"`.
+- `maxConcurrentTasks` must be an integer ≥ 1.
+- `assignedTaskIds` (or `activeTasks`) must strictly reference task IDs defined in `.ai-team/tasks/`.
+- No placeholders, fake wildcards, or empty strings.
+
+---
+
+### 2. `.ai-team/plan.json` — Milestones & Task Index
+
+Defines high-level delivery milestones, target dates, sequencing dependencies, and a consolidated index of all tasks with their current execution status and assigned branches.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "planId": "plan-v1",
+  "version": "1.0.0",
+  "createdAt": "2026-10-28T12:00:00Z",
+  "updatedAt": "2026-10-28T12:00:00Z",
+  "currentMilestone": "m1-foundation",
+  "milestones": [
+    {
+      "id": "m1-foundation",
+      "title": "Foundation & Core Infrastructure",
+      "description": "Establish environment, database schema, authentication, and core API routing.",
+      "targetDate": "2026-11-05",
+      "status": "in_progress",
+      "tasks": [
+        "task-001",
+        "task-002",
+        "task-003"
+      ]
+    },
+    {
+      "id": "m2-ui-features",
+      "title": "Core UI & Client Experience",
+      "description": "Deliver primary client views, forms, and responsive components integrated with the API.",
+      "targetDate": "2026-11-12",
+      "status": "todo",
+      "tasks": [
+        "task-004"
+      ]
+    },
+    {
+      "id": "m3-testing-hardening",
+      "title": "Test Coverage & Production Hardening",
+      "description": "Comprehensive E2E suite, load verification, and CI/CD deployment checks.",
+      "targetDate": "2026-11-19",
+      "status": "todo",
+      "tasks": [
+        "task-005"
+      ]
+    }
+  ],
+  "taskIndex": [
+    {
+      "id": "task-001",
+      "title": "Project Base Configuration & Core Schemas",
+      "slug": "base-config",
+      "milestoneId": "m1-foundation",
+      "assignedTo": "architect-lead",
+      "status": "completed",
+      "branch": "feature/task-001-base-config"
+    },
+    {
+      "id": "task-002",
+      "title": "Prisma Database Models & Migration Pipeline",
+      "slug": "database-models",
+      "milestoneId": "m1-foundation",
+      "assignedTo": "backend-specialist",
+      "status": "in_progress",
+      "branch": "feature/task-002-database-models"
+    },
+    {
+      "id": "task-003",
+      "title": "User Authentication & Session Middleware",
+      "slug": "auth-middleware",
+      "milestoneId": "m1-foundation",
+      "assignedTo": "backend-specialist",
+      "status": "todo",
+      "branch": "feature/task-003-auth-middleware"
+    },
+    {
+      "id": "task-004",
+      "title": "Interactive Dashboard & Navigation Shell",
+      "slug": "dashboard-shell",
+      "milestoneId": "m2-ui-features",
+      "assignedTo": "frontend-specialist",
+      "status": "todo",
+      "branch": "feature/task-004-dashboard-shell"
+    },
+    {
+      "id": "task-005",
+      "title": "End-to-End Test Suite & Verification Matrix",
+      "slug": "e2e-suite",
+      "milestoneId": "m3-testing-hardening",
+      "assignedTo": "qa-validator",
+      "status": "todo",
+      "branch": "feature/task-005-e2e-suite"
+    }
+  ]
+}
+```
+
+---
+
+### 3. Individual Task Files (`.ai-team/tasks/<task-id>.json`)
+
+Every task is created as an independent JSON file named `<task-id>.json` inside `.ai-team/tasks/`. This prevents merge conflicts when parallel agents simultaneously update their assigned tasks.
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "id": "task-003",
+  "title": "User Authentication & Session Middleware",
+  "slug": "auth-middleware",
+  "milestoneId": "m1-foundation",
+  "assignedTo": "backend-specialist",
+  "ownerGit": "@dvance-backend",
+  "status": "todo",
+  "priority": "high",
+  "branch": "feature/task-003-auth-middleware",
+  "dependencies": [
+    "task-001",
+    "task-002"
+  ],
+  "touchesFiles": [
+    "src/lib/auth.ts",
+    "src/middleware.ts",
+    "src/app/api/auth/[...nextauth]/route.ts",
+    "tests/auth.test.ts"
+  ],
+  "description": "Implement authentication handlers, JWT validation, and route protection middleware using NextAuth with the Prisma database adapter.",
+  "acceptanceCriteria": [
+    "JWT session tokens are signed and verified against NEXTAUTH_SECRET",
+    "Protected API routes return 401 Unauthorized for unauthenticated requests",
+    "Middleware redirects unauthenticated requests for /dashboard to /auth/signin",
+    "All unit and integration tests in tests/auth.test.ts pass with 100% assertion success"
+  ],
+  "verificationCommand": "npm test tests/auth.test.ts"
+}
+```
+
+**Key Fields in Task Files:**
+- `id`: Unique identifier formatted as `task-<number>` (3-digit zero-padded, e.g. `task-003`).
+- `slug`: Short lowercase kebab-case description (e.g. `auth-middleware`).
+- `milestoneId`: Associated milestone defined in `.ai-team/plan.json`.
+- `assignedTo`: Member ID corresponding to an entry in `.ai-team/team.json` (or `assignee` object `{ id, name }`).
+- `ownerGit`: Git username matching the member's `gitUser` (e.g. `@dvance-backend`).
+- `status`: One of `"todo"`, `"in_progress"`, `"in_review"`, `"done"` (canonical; `"completed"` and `"blocked"` are also accepted).
+- `branch`: Strictly formatted as `feature/<task-id>-<slug>` (primary; `feat/<task-id>-<slug>` accepted as alias).
+- `dependencies`: Array of prerequisite task IDs that must reach `"done"` (or `"completed"`) status before this task can start (also aliased as `blockedBy`).
+- `touchesFiles`: Exact list of repository paths this task creates or edits (also aliased as `allowedPaths`). Critical for conflict avoidance and parallel agent isolation.
+- `acceptanceCriteria`: Testable, concrete functional statements.
+- `verificationCommand`: Specific test or script that must exit with code 0 to satisfy verification (or `verificationCommands` array).
+
+---
+
+### 4. Root `CODEOWNERS` (or `.github/CODEOWNERS`)
+
+Generates a `CODEOWNERS` file conforming to GitHub and GitLab syntax. It can be placed at the repository root (`CODEOWNERS`) or in `.github/CODEOWNERS`. Maps project file paths and directories to the assigned team member's Git username (`gitUser`).
+
+```text
+# ==============================================================================
+# Game Dojo CODEOWNERS
+# ==============================================================================
+# Syntax: <path-pattern> <@username> [<@additional_username>]
+# Rules are evaluated from top to bottom; the last matching pattern takes precedence.
+
+# Global default owner
+* @amercer-lead
+
+# Configuration & Infrastructure
+/.github/ @amercer-lead
+/docker-compose*.yml @amercer-lead
+/Dockerfile* @amercer-lead
+/scripts/ @amercer-lead
+/package.json @amercer-lead
+/tsconfig.json @amercer-lead
+
+# Database Models & Migrations
+/prisma/ @dvance-backend
+/src/lib/db.ts @dvance-backend
+
+# Backend API & Server Services
+/src/app/api/ @dvance-backend
+/src/services/ @dvance-backend
+/src/middleware.ts @dvance-backend
+
+# Frontend Components, Pages & Styles
+/src/app/(dashboard)/ @erostova-frontend
+/src/components/ @erostova-frontend
+/src/styles/ @erostova-frontend
+/tailwind.config.js @erostova-frontend
+
+# Test Automation & QA Suites
+/tests/ @kpatel-qa
+/vitest.config.ts @kpatel-qa
+
+# AI Team Coordination Directory
+/.ai-team/ @amercer-lead
+```
+
+**Rules for `CODEOWNERS`:**
+- Every git username must start with `@` and map to an existing member in `.ai-team/team.json`.
+- Directories must end with `/` or match specific glob patterns.
+- Paths must correspond to real project directories created in the skeleton or planned in `touchesFiles`.
+- Note: When validating path patterns relative to project root on Windows, always strip the leading `/` (e.g. `/src/lib/` becomes `src/lib/`) to prevent path resolution to the drive root.
+
+---
+
+### 5. Task Branch Initialization Commands
+
+When Team Mode is bootstrapped, Game Dojo generates the git branch creation commands so each specialist agent or human developer can work in isolated feature branches without merge collisions.
+
+#### Individual Branch Command Convention
+For any task, the feature branch command is:
+```bash
+git branch feature/<task-id>-<slug>
+# Or checkout immediately:
+git checkout -b feature/<task-id>-<slug>
+```
+
+#### Batch Initialization Commands
+
+**PowerShell (Windows):**
+```powershell
+# Parse plan.json (or fallback to .ai-team/tasks/*.json) and create all task branches from main
+$branches = @()
+if (Test-Path ".ai-team/plan.json") {
+    $plan = Get-Content ".ai-team/plan.json" -Raw | ConvertFrom-Json
+    if ($plan.taskIndex) {
+        $branches = $plan.taskIndex | ForEach-Object { [PSCustomObject]@{ id = $_.id; branch = $_.branch } }
+    }
+}
+if ($branches.Count -eq 0 -and (Test-Path ".ai-team/tasks")) {
+    $branches = Get-ChildItem -Path ".ai-team/tasks" -Filter "*.json" | ForEach-Object {
+        $t = Get-Content $_.FullName -Raw | ConvertFrom-Json
+        [PSCustomObject]@{ id = $t.id; branch = $t.branch }
+    }
+}
+
+foreach ($item in $branches) {
+    $branch = $item.branch
+    if ($branch) {
+        $exists = git branch --list $branch
+        if (-not $exists) {
+            git branch $branch
+            Write-Host "🌿 Created branch $branch for $($item.id)" -ForegroundColor Green
+        } else {
+            Write-Host "ℹ️  Branch $branch already exists" -ForegroundColor Cyan
+        }
+    }
+}
+```
+
+**Bash (Unix):**
+```bash
+# Parse plan.json (or fallback to .ai-team/tasks/*.json) and create all task branches from main
+branches=()
+if [ -f ".ai-team/plan.json" ] && command -v jq >/dev/null 2>&1; then
+    for b in $(jq -r '.taskIndex[]?.branch // empty' .ai-team/plan.json 2>/dev/null); do
+        [ -n "$b" ] && branches+=("$b")
+    done
+fi
+if [ ${#branches[@]} -eq 0 ] && [ -d ".ai-team/tasks" ] && command -v jq >/dev/null 2>&1; then
+    for tf in .ai-team/tasks/*.json; do
+        if [ -f "$tf" ]; then
+            b=$(jq -r '.branch // empty' "$tf" 2>/dev/null)
+            [ -n "$b" ] && branches+=("$b")
+        fi
+    done
+fi
+
+for branch in "${branches[@]}"; do
+    if [ -n "$branch" ]; then
+        if git show-ref --verify --quiet "refs/heads/$branch"; then
+            echo "ℹ️  Branch $branch already exists"
+        else
+            git branch "$branch"
+            echo "🌿 Created branch $branch"
+        fi
+    fi
+done
 ```
 
 ---
@@ -942,12 +1417,18 @@ Before marking skeleton generation as complete, verify:
 - [ ] Docker builds successfully (if applicable)
 - [ ] Database schema is valid and migratable (if applicable)
 - [ ] Every generated file is syntactically valid
+- [ ] `.ai-team/team.json` contains valid member roster, git handles, and availability (when Team Mode is active)
+- [ ] `.ai-team/plan.json` has complete milestone definitions and indexed tasks (when Team Mode is active)
+- [ ] Individual task files `.ai-team/tasks/<task-id>.json` contain `touchesFiles`, `dependencies`, and `branch` (when Team Mode is active)
+- [ ] Root `CODEOWNERS` maps directory areas to valid team member git handles (when Team Mode is active)
+- [ ] Feature branches initialized via `git branch feature/<task-id>-<slug>` (when Team Mode is active)
 
 ---
 
 ## Integration with Other Skills
 
 - **doc-generator**: Must run first to produce the documentation this skill reads
-- **self-healing**: Should run after skeleton generation to catch any issues
-- **project-validator**: Validates the skeleton output for completeness
+- **self-healing**: Runs after skeleton generation to validate `.ai-team/*.json` schemas, detect circular dependencies, enforce branch slug conventions, resolve concurrent file collisions, and reconcile CODEOWNERS
+- **project-validator**: Validates both the skeleton code output and `.ai-team/` configuration for completeness
+- **agent-swarm**: Coordinates parallel specialist agents bound by `.ai-team/` tasks, branches, and CODEOWNERS boundaries
 - **adaptive-memory**: Records which skeleton patterns worked well for future bootstraps
